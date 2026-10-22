@@ -66,7 +66,7 @@ export function makeObj(parent: SceneObject, name: string, position?: vec3): Sce
 
 export interface Panel {
   root: SceneObject
-  plate: BackPlate
+  plate: BackPlate | null
   content: SceneObject
   flex: FlexLayout
 }
@@ -74,17 +74,22 @@ export interface Panel {
 /**
  * A static UIKit panel: Canvas + BackPlate on `root`, then a Content child (z +0.6) with a
  * column FlexLayout. The BackPlate hugs the laid-out content.
+ * `plate: false` skips the BackPlate: a BackPlate always carries its own Interactable and
+ * collider, which can win near-field targeting over the buttons sitting on it.
  */
 export function makePanel(
   parent: SceneObject,
   name: string,
   widthCm: number,
-  opts: {padCm?: number; gapCm?: number; style?: "default" | "dark" | "simple"; position?: vec3} = {},
+  opts: {padCm?: number; gapCm?: number; style?: "default" | "dark" | "simple"; position?: vec3; plate?: boolean} = {},
 ): Panel {
   const root = makeObj(parent, name, opts.position)
   root.createComponent("Component.Canvas")
-  const plate = root.createComponent(BackPlate.getTypeName()) as BackPlate
-  plate.style = opts.style ?? "dark"
+  let plate: BackPlate | null = null
+  if (opts.plate ?? true) {
+    plate = root.createComponent(BackPlate.getTypeName()) as BackPlate
+    plate.style = opts.style ?? "dark"
+  }
   const content = makeObj(root, "Content", new vec3(0, 0, CONTENT_Z))
   const flex = content.createComponent(FlexLayout.getTypeName()) as FlexLayout
   const pad = opts.padCm ?? 2
@@ -99,7 +104,7 @@ export function makePanel(
   flex.paddingLeft = pad
   flex.paddingRight = pad
   flex.onLayoutComplete.add((r) => {
-    plate.size = new vec2(r.containerWidth, r.containerHeight)
+    if (plate) plate.size = new vec2(r.containerWidth, r.containerHeight)
   })
   return {root, plate, content, flex}
 }

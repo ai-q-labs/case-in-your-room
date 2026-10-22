@@ -78,9 +78,12 @@ export class CaseRoomInspectPanelUI extends BaseScriptComponent {
       color: new vec4(1.0, 0.85, 0.45, 1),
     })
 
-    this.buttons = makePanel(this.sceneObject, "InspectButtons", -1, {padCm: 0.8, gapCm: 0.8})
-    addButton(this.buttons.content, "FlipButton", TEXT.flip, 8.5, 2.8, d, b, () => this._onFlip.invoke())
-    addButton(this.buttons.content, "PutBackButton", TEXT.putBack, 8.5, 2.8, d, b, () => this._onPutBack.invoke())
+    // No BackPlate behind the buttons (it stole near-field pinches from Flip), and buttons sized to
+    // the Specs "Large" target at ~55 cm (4 cm) with a 1.6 cm gap (> the 1-degree minimum spacing),
+    // so pressing Put back can no longer also press Flip.
+    this.buttons = makePanel(this.sceneObject, "InspectButtons", -1, {padCm: 0.8, gapCm: 1.6, plate: false})
+    addButton(this.buttons.content, "FlipButton", TEXT.flip, 9, 4, d, b, () => this._onFlip.invoke())
+    addButton(this.buttons.content, "PutBackButton", TEXT.putBack, 9, 4, d, b, () => this._onPutBack.invoke())
 
     this.infoGate = new VisibilityGate(this, this.info.root, false)
     this.buttonsGate = new VisibilityGate(this, this.buttons.root, false)
@@ -89,7 +92,7 @@ export class CaseRoomInspectPanelUI extends BaseScriptComponent {
   /** Place the info panel below and the buttons beside a held clue of the given size (cm). */
   layoutFor(widthCm: number, heightCm: number): void {
     this.info.root.getTransform().setLocalPosition(new vec3(0, -(heightCm / 2 + this.gapCm + 3.1), 0.5))
-    this.buttons.root.getTransform().setLocalPosition(new vec3(widthCm / 2 + this.gapCm + 5.0, 0, 0.5))
+    this.buttons.root.getTransform().setLocalPosition(new vec3(widthCm / 2 + this.gapCm + 5.3, 0, 0.5))
   }
 
   show(name: string, description: string): void {
