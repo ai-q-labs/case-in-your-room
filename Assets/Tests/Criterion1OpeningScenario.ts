@@ -47,6 +47,10 @@ export class Criterion1OpeningScenario extends Scenario {
     const t0 = getTime()
     const revealAt: number[] = CLUES.map(() => -1)
     const glowPeak: number[] = CLUES.map(() => 0)
+    // Brief: "the 5 clues light up one at a time, each with a small sound". The sound itself can't be
+    // heard here; the closest observable state is the clue's AudioComponent playing once it is lit.
+    const chimes = CLUES.map((c) => ui.so(c.so).getComponent("Component.AudioComponent") as AudioComponent)
+    const chimed: boolean[] = CLUES.map(() => false)
     let revealedAtFirstPoll = -1
     let boardHiddenAt = -1
     while (getTime() - t0 < 5) {
@@ -54,6 +58,7 @@ export class Criterion1OpeningScenario extends Scenario {
       CLUES.forEach((c, i) => {
         if (revealAt[i] < 0 && ui.isRevealed(c.so)) revealAt[i] = now
         if (revealAt[i] >= 0 && now - revealAt[i] <= 0.3) glowPeak[i] = Math.max(glowPeak[i], ui.glowLevel(c.so))
+        if (chimes[i] && chimes[i].isPlaying()) chimed[i] = true
       })
       if (revealedAtFirstPoll < 0) revealedAtFirstPoll = revealAt.filter((t) => t >= 0).length
       if (boardHiddenAt < 0 && !ui.isShown("OpeningBoard")) boardHiddenAt = now
@@ -77,6 +82,8 @@ export class Criterion1OpeningScenario extends Scenario {
       expect(revealAt[i] >= 0, `${c.so} lit up`).toBe(true)
       expect(glowPeak[i] >= 0.6, `${c.so} glow flash when lit (peak ${glowPeak[i].toFixed(2)})`).toBe(true)
       expect(ui.isPinchable(c.so), `${c.so} pinchable`).toBe(true)
+      expect(!!chimes[i] && !!chimes[i].audioTrack, `${c.so} has a chime`).toBe(true)
+      expect(chimed[i], `${c.so} chime played when lit`).toBe(true)
       if (i > 0) ui.between(`gap between ${CLUES[i - 1].so} and ${c.so} lighting up (s)`, revealAt[i] - revealAt[i - 1], 0.3, 1.0)
     })
 

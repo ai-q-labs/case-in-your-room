@@ -30,6 +30,11 @@
   ScriptInputsHidden:
     boardDistanceCm: false
     caption: false
+    chime1: false
+    chime2: false
+    chime3: false
+    chime4: false
+    chime5: false
     clueClock: false
     clueFootprints: false
     clueGlass: false
@@ -86,6 +91,11 @@
       suspectsUI: !<MappingBased.AssignableType_17> 00000000-0000-0000-0000-000000000000
       truthPanel: !<MappingBased.AssignableType_18> 00000000-0000-0000-0000-000000000000
       replay: !<MappingBased.AssignableType_19> 00000000-0000-0000-0000-000000000000
+      chime1: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      chime2: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      chime3: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      chime4: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
+      chime5: !<reference.AudioTrackAsset> 00000000-0000-0000-0000-000000000000
       eyeHeightCm: !<float> 160.000000
       boardDistanceCm: !<float> 120.000000
       inspectDistanceCm: !<float> 50.000000
@@ -122,6 +132,15 @@
     - '// @input AssignableType_17 suspectsUI {"hint":"Suspect names / alibi / Accuse UI"}'
     - '// @input AssignableType_18 truthPanel {"hint":"Truth panel UI"}'
     - '// @input AssignableType_19 replay {"hint":"Replay controller (gather, threads, culprit walk)"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Sounds</span>"}'
+    - '// @ui {"widget":"group_start", "label":"Sounds"}'
+    - '// @input Asset.AudioTrackAsset chime1 {"hint":"Chime when clue 1 (memo) lights up after Start"}'
+    - '// @input Asset.AudioTrackAsset chime2 {"hint":"Chime when clue 2 (footprints) lights up"}'
+    - '// @input Asset.AudioTrackAsset chime3 {"hint":"Chime when clue 3 (stopped clock) lights up"}'
+    - '// @input Asset.AudioTrackAsset chime4 {"hint":"Chime when clue 4 (broken glass) lights up"}'
+    - '// @input Asset.AudioTrackAsset chime5 {"hint":"Chime when clue 5 (torn photo) lights up"}'
     - '// @ui {"widget":"group_end"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'

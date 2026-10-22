@@ -120,6 +120,30 @@ export class CaseRoomMain extends BaseScriptComponent {
   @ui.group_end
 
   @ui.separator
+  @ui.label('<span style="color: #60A5FA;">Sounds</span>')
+  @ui.group_start("Sounds")
+  @input
+  @hint("Chime when clue 1 (memo) lights up after Start")
+  chime1: AudioTrackAsset
+
+  @input
+  @hint("Chime when clue 2 (footprints) lights up")
+  chime2: AudioTrackAsset
+
+  @input
+  @hint("Chime when clue 3 (stopped clock) lights up")
+  chime3: AudioTrackAsset
+
+  @input
+  @hint("Chime when clue 4 (broken glass) lights up")
+  chime4: AudioTrackAsset
+
+  @input
+  @hint("Chime when clue 5 (torn photo) lights up")
+  chime5: AudioTrackAsset
+  @ui.group_end
+
+  @ui.separator
   @ui.label('<span style="color: #60A5FA;">Settings</span>')
   @ui.group_start("Settings")
   @input
@@ -170,6 +194,7 @@ export class CaseRoomMain extends BaseScriptComponent {
   private camT: Transform = null
   private frames = 0
   private boardPlaced = false
+  private chimes: AudioComponent[] = []
 
   /** Current phase, for tests and debugging. */
   get currentPhase(): string {
@@ -215,7 +240,24 @@ export class CaseRoomMain extends BaseScriptComponent {
     this.inspectPanel.onPutBack.add(() => this.onPutBack())
     for (const s of this.suspects) s.onPressed.add((i) => this.onSuspectPressed(i))
     this.suspectsUI.onAccuse.add(() => this.onAccuse())
+    this.setupChimes()
     this.log("ready")
+  }
+
+  /** One chime per clue (rising pitch, Assets/GeneratedSFX), played as each clue lights up after Start. */
+  private setupChimes(): void {
+    const tracks = [this.chime1, this.chime2, this.chime3, this.chime4, this.chime5]
+    this.chimes = this.clues.map((c, i) => {
+      if (!tracks[i]) {
+        print(`[CaseRoomMain] chime${i + 1} not wired; clue ${i + 1} lights up silently`)
+        return null
+      }
+      const a = c.getSceneObject().createComponent("Component.AudioComponent") as AudioComponent
+      a.audioTrack = tracks[i]
+      a.playbackMode = Audio.PlaybackMode.LowLatency
+      a.volume = 0.6
+      return a
+    })
   }
 
   private onUpdate(): void {
@@ -253,6 +295,7 @@ export class CaseRoomMain extends BaseScriptComponent {
       this.delay(0.4 + i * 0.45, () => {
         c.reveal()
         c.setInteractive(true)
+        if (this.chimes[i]) this.chimes[i].play(1)
       })
     })
     this.caption.showCaption(TEXT.lookAround, 3)

@@ -1920,6 +1920,11 @@
       suspectsUI: !<MappingBased.AssignableType_17> e53aa78c-2dc8-4fd8-8556-96d7420014f0
       truthPanel: !<MappingBased.AssignableType_18> 840679f3-a1a2-4804-9a04-518e6cd33077
       replay: !<MappingBased.AssignableType_19> d8cdfe33-dbde-4744-9e2d-3c54cb5516db
+      chime1: !<reference.AudioTrackAsset> e118a02c-8598-4033-b6f8-78cdc90d33cc
+      chime2: !<reference.AudioTrackAsset> eb4a6d32-6fb5-41b0-94fe-c2cc4556bf81
+      chime3: !<reference.AudioTrackAsset> a20f90d9-5839-471f-b107-2dc4f9aa3b3f
+      chime4: !<reference.AudioTrackAsset> 4435e5e8-875d-4687-aafb-9e0871d81680
+      chime5: !<reference.AudioTrackAsset> 7137bbba-db03-4c45-b306-5e8ec80614ad
       eyeHeightCm: !<float> 160.000000
       boardDistanceCm: !<float> 120.000000
       inspectDistanceCm: !<float> 50.000000
