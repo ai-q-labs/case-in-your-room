@@ -45,6 +45,7 @@
     debugLog: false
     eyeHeightCm: false
     hud: false
+    inPlaceGapDeg: false
     inspectDistanceCm: false
     inspectDropCm: false
     inspectMaxDistanceCm: false
@@ -106,6 +107,7 @@
       inspectMaxSizeCm: !<float> 14.000000
       inspectMaxDistanceCm: !<float> 60.000000
       inspectViewFill: 0.850000
+      inPlaceGapDeg: !<float> 2.000000
       inspectRiseDegPerSec: !<float> 30.000000
       lineupDistanceCm: !<float> 200.000000
       debugLog: true
@@ -142,11 +144,11 @@
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Sounds</span>"}'
     - '// @ui {"widget":"group_start", "label":"Sounds"}'
-    - '// @input Asset.AudioTrackAsset chime1 {"hint":"Chime when clue 1 (memo) lights up after Start"}'
-    - '// @input Asset.AudioTrackAsset chime2 {"hint":"Chime when clue 2 (footprints) lights up"}'
-    - '// @input Asset.AudioTrackAsset chime3 {"hint":"Chime when clue 3 (stopped clock) lights up"}'
-    - '// @input Asset.AudioTrackAsset chime4 {"hint":"Chime when clue 4 (broken glass) lights up"}'
-    - '// @input Asset.AudioTrackAsset chime5 {"hint":"Chime when clue 5 (torn photo) lights up"}'
+    - '// @input Asset.AudioTrackAsset chime1 {"hint":"Chime for the 1st clue to light up after Start (REVEAL_ORDER; rising pitch)"}'
+    - '// @input Asset.AudioTrackAsset chime2 {"hint":"Chime for the 2nd clue to light up after Start (REVEAL_ORDER; rising pitch)"}'
+    - '// @input Asset.AudioTrackAsset chime3 {"hint":"Chime for the 3rd clue to light up after Start (REVEAL_ORDER; rising pitch)"}'
+    - '// @input Asset.AudioTrackAsset chime4 {"hint":"Chime for the 4th clue to light up after Start (REVEAL_ORDER; rising pitch)"}'
+    - '// @input Asset.AudioTrackAsset chime5 {"hint":"Chime for the 5th clue to light up after Start (REVEAL_ORDER; rising pitch)"}'
     - '// @ui {"widget":"group_end"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'
@@ -158,6 +160,7 @@
     - '// @input float inspectMaxSizeCm = 11 {"hint":"Largest size of an inspected clue in cm (2x, capped so it fits the view at 50 cm)", "widget":"slider", "min":6, "max":40, "step":0.5}'
     - '// @input float inspectMaxDistanceCm = 50 {"hint":"Farthest the inspected clue may be pushed back (cm) so the clue, description and buttons all fit the view; past this they shrink instead. Kept at 50: at 57 cm the LEAF IK arm could no longer press Flip directly", "widget":"slider", "min":40, "max":80, "step":1}'
     - '// @input float inspectViewFill = 0.85 {"hint":"Share of the view the inspected clue + description + buttons may fill, edge to edge (leaves a margin for stepping closer)", "widget":"slider", "min":0.5, "max":1, "step":0.01}'
+    - '// @input float inPlaceGapDeg = 2 {"hint":"Gap in degrees, as the player sees it, between a clue described in place (footprints) and the bottom of its description", "widget":"slider", "min":0, "max":10, "step":0.5}'
     - '// @input float inspectRiseDegPerSec = 30 {"hint":"Average turn rate (deg/s) of an inspected clue on its way to the hands, as seen from the eye (slow enough to follow)", "widget":"slider", "min":10, "max":120, "step":1}'
     - '// @input float lineupDistanceCm = 200 {"hint":"Distance of the suspect line-up straight ahead, in cm", "widget":"slider", "min":100, "max":300, "step":1}'
     - '// @ui {"widget":"group_end"}'

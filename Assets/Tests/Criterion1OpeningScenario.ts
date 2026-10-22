@@ -71,7 +71,7 @@ export class Criterion1OpeningScenario extends Scenario {
       })
       if (revealedAtFirstPoll < 0) revealedAtFirstPoll = revealAt.filter((t) => t >= 0).length
       if (boardHiddenAt < 0 && !ui.isShown("OpeningBoard")) boardHiddenAt = now
-      const lastPeakDone = revealAt[CLUES.length - 1] >= 0 && now - revealAt[CLUES.length - 1] > 0.3
+      const lastPeakDone = revealAt.every((t) => t >= 0) && now - Math.max(...revealAt) > 0.3
       if (boardHiddenAt >= 0 && lastPeakDone) break
       await nextFrame()
     }
@@ -93,8 +93,12 @@ export class Criterion1OpeningScenario extends Scenario {
       expect(ui.isPinchable(c.so), `${c.so} pinchable`).toBe(true)
       expect(!!chimes[i] && !!chimes[i].audioTrack, `${c.so} has a chime`).toBe(true)
       expect(chimed[i], `${c.so} chime played when lit`).toBe(true)
-      if (i > 0) ui.between(`gap between ${CLUES[i - 1].so} and ${c.so} lighting up (s)`, revealAt[i] - revealAt[i - 1], 0.3, 1.0)
     })
+    // One at a time, in the order they light up (the clue in view at Start goes first).
+    const order = CLUES.map((c, i) => ({so: c.so, t: revealAt[i]})).sort((a, b) => a.t - b.t)
+    for (let k = 1; k < order.length; k++) {
+      ui.between(`gap between ${order[k - 1].so} and ${order[k].so} lighting up (s)`, order[k].t - order[k - 1].t, 0.3, 1.0)
+    }
 
     // "0 / 5" with an arrow at the bottom of the view.
     await nextFrame()

@@ -32,12 +32,13 @@ export class CaseRoomBasicFlowScenario extends Scenario {
     expect(this.isShown("CounterPanel")).toBe(true)
     expect(this.text("CaptionText")).toBe("Look around you")
     this.log("start ok")
-    await sleep(2200) // let all 5 clues light up
+    await sleep(2600) // let all 5 clues light up (the last one at 2.35 s after Start)
     if (stopAfter === "start") return
 
-    const clues: [string, string][] = [
+    // Back text after Flip; null = described in place (footprints: no Flip, a Close button instead).
+    const clues: [string, string | null][] = [
       ["Clue_Memo", "10:40"],
-      ["Clue_Footprints", "Nothing on the back."],
+      ["Clue_Footprints", null],
       ["Clue_StoppedClock", "Nothing on the back."],
       ["Clue_BrokenGlass", "Nothing on the back."],
       ["Clue_TornPhoto", "...ra, my only heir"],
@@ -48,13 +49,19 @@ export class CaseRoomBasicFlowScenario extends Scenario {
       // The clue comes to the hands at a followable pace (up to 2.2 s for the lowest clues).
       for (let waited = 0; waited < 3500 && !this.isShown("InspectInfo"); waited += 100) await sleep(100)
       expect(this.isShown("InspectInfo")).toBe(true)
-      expect(this.isShown("FlipButton")).toBe(true)
       expect(this.text("InspectDescriptionText").length).toBeGreaterThan(5)
       if (stopAfter === "inspect_memo") return
-      await this.tap("FlipButton")
-      await sleep(700)
-      expect(this.text("InspectBackText").includes(back)).toBe(true)
-      await this.tap("PutBackButton")
+      if (back === null) {
+        expect(this.isShown("FlipButton")).toBe(false)
+        expect(this.isShown("CloseButton")).toBe(true)
+        await this.tap("CloseButton")
+      } else {
+        expect(this.isShown("FlipButton")).toBe(true)
+        await this.tap("FlipButton")
+        await sleep(700)
+        expect(this.text("InspectBackText").includes(back)).toBe(true)
+        await this.tap("PutBackButton")
+      }
       await sleep(1000)
       expect(this.text("CounterText")).toBe(`${i + 1} / 5`)
       this.log(`${name} ok -> ${this.text("CounterText")}`)

@@ -13,7 +13,8 @@ import {CaseRoomLeafInteractor, CLUES} from "./CaseRoomLeafInteractor"
  *
  * For each clue the head is aimed at the clue's place in the room, the clue is pinched, and the head
  * then follows the clue at a human turn rate (at most HEAD_DEG_PER_S). Once it is held, the head rests
- * in a level gaze in the same facing. Measured:
+ * in a level gaze in the same facing. A clue described in place (footprints) does not move: the head
+ * looks at its description, which must sit just above it, face the player, and count when closed. Measured:
  *  - the rise: time, the fastest angular speed of the clue as seen from the eye, and the share of
  *    frames in which the following head still has the clue in view;
  *  - at open: how much of the view the clue, its description and its buttons fill ("fill" = the largest
@@ -95,11 +96,43 @@ export class InspectFitScenario extends Scenario {
         const riseS = getTime() - t0
         const inView = frames > 0 ? framesInView / frames : 1
 
-        // ── At open: the head rests level, in the facing it had at the pinch ──
-        hold = look(new vec3(aim.x, 0, aim.z).normalize())
+        // ── At open: a held clue -> the head rests level, in the facing it had at the pinch.
+        // A clue described in place (footprints) -> the head looks at its description. ──
+        const inPlace = ui.isInPlace(c.so)
+        if (!inPlace) hold = look(new vec3(aim.x, 0, aim.z).normalize())
         await sleep(400) // let the panels lay out
         const names: string[] = []
-        const pts = this.groupCorners(ui, c.so, names)
+        let pts = this.groupCorners(ui, c.so, names)
+        if (inPlace) {
+          const mid = this.centroid(pts)
+          hold = look(mid.sub(eye).normalize())
+          await nextFrame()
+          await nextFrame()
+          names.length = 0
+          pts = this.groupCorners(ui, c.so, names)
+          // Stays where it lies, with its description just above it, facing the player.
+          const moved = wrapper.getWorldPosition().distance(rest)
+          // As the player saw it at the pinch: angles above the line of sight to the clue.
+          const toClue = rest.sub(eye).normalize()
+          const upC = vec3.up().sub(toClue.uniformScale(toClue.y)).normalize()
+          const elev = (p: vec3) => Math.atan2(p.sub(eye).dot(upC), p.sub(eye).dot(toClue)) / DEG
+          const clueTop = Math.max(...ui.clue(c.so).worldCorners().map(elev))
+          const gapDeg = Math.min(...pts.map(elev)) - clueTop
+          // Left-right offset of the description from the clue, as the player sees it (not toward / away).
+          const side = new vec3(-toClue.z, 0, toClue.x).normalize()
+          const off = Math.abs(mid.sub(rest).dot(side))
+          const panelZ = ui.so("InspectInfo").getTransform().getWorldRotation().multiplyVec3(vec3.forward())
+          const facing = panelZ.dot(eye.sub(mid).normalize())
+          ui.log(
+            `${c.so} in place: moved ${moved.toFixed(2)} cm, description bottom ${gapDeg.toFixed(1)} deg above its top as seen from the eye, ` +
+              `centre ${off.toFixed(1)} cm to the side of it, facing the eye (cos ${facing.toFixed(3)}), Flip shown ${ui.isShown("FlipButton")}`,
+          )
+          if (moved > 0.5) problems.push(`${c.so} moved ${moved.toFixed(2)} cm (should stay where it lies)`)
+          if (gapDeg < 0.5 || gapDeg > 8) problems.push(`${c.so} description bottom ${gapDeg.toFixed(1)} deg above it (0.5-8: just above, never covering it)`)
+          if (off > 10) problems.push(`${c.so} description centre ${off.toFixed(1)} cm to the side of it (max 10)`)
+          if (facing < 0.98) problems.push(`${c.so} description not facing the player (cos ${facing.toFixed(3)})`)
+          if (ui.isShown("FlipButton") || !ui.isShown("CloseButton")) problems.push(`${c.so} should show Close only, not Flip / Put back`)
+        }
         const b = this.basis(ui)
         const fill = this.fill(pts, b, tanH, tanV)
         // Which parts reach furthest out (for the report).
@@ -147,11 +180,13 @@ export class InspectFitScenario extends Scenario {
         if (peak > MAX_RISE_DEG_PER_S) problems.push(`${c.so} rises at ${peak.toFixed(0)} deg/s (max ${MAX_RISE_DEG_PER_S})`)
         if (inView < MIN_IN_VIEW) problems.push(`${c.so} in view of the following head ${(inView * 100).toFixed(0)}% of the rise (min ${MIN_IN_VIEW * 100}%)`)
         if (fill > MAX_FILL) problems.push(`${c.so} fills ${fill.toFixed(3)} of the view at open (max ${MAX_FILL})`)
-        if (heldDist < 35 || heldDist > 60) problems.push(`${c.so} held ${heldDist.toFixed(1)} cm from the eye (35-60)`)
+        if (!inPlace && (heldDist < 35 || heldDist > 60)) problems.push(`${c.so} held ${heldDist.toFixed(1)} cm from the eye (35-60)`)
 
-        await ui.tap("PutBackButton")
-        // After the 5th clue the game moves on to the suspects, so wait for "not inspecting".
+        // Put back (or Close); after the 5th clue the game moves on to the suspects, so wait for "not inspecting".
+        const counted = ui.main.foundCount
+        await ui.tap(inPlace ? "CloseButton" : "PutBackButton")
         await ui.waitUntil(`${c.so} back in its place`, () => ui.phase !== "inspect" && ui.phase !== "intro", 6000)
+        if (ui.main.foundCount !== counted + 1) problems.push(`${c.so} did not count (${counted} -> ${ui.main.foundCount})`)
       }
     } finally {
       hold = null
@@ -221,9 +256,16 @@ export class InspectFitScenario extends Scenario {
       }
       for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
     }
-    visit(ui.so(clueSo))
+    if (!ui.isInPlace(clueSo)) visit(ui.so(clueSo)) // a clue described in place stays on the floor, out of the group
     visit(ui.so("InspectInfo"))
     visit(ui.so("InspectButtons"))
+    visit(ui.so("InspectCloseButtons"))
     return out
+  }
+
+  private centroid(pts: vec3[]): vec3 {
+    let sum = vec3.zero()
+    for (const p of pts) sum = sum.add(p)
+    return sum.uniformScale(1 / Math.max(1, pts.length))
   }
 }

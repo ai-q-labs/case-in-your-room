@@ -362,12 +362,21 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     this.log("started")
   }
 
-  /** Pinch a clue and wait until it is held with its description panel and buttons. */
+  /** Clues described where they lie instead of coming to the hands (no Flip; a Close button). */
+  isInPlace(clueSo: string): boolean {
+    return !!this.clue(clueSo).info.inPlace
+  }
+
+  /** Pinch a clue and wait until its description and buttons show (held, or in place with Close). */
   async inspect(clueSo: string): Promise<void> {
     await this.tap(clueSo)
+    const inPlace = this.isInPlace(clueSo)
     await this.waitUntil(
-      `${clueSo} held with description and buttons`,
-      () => this.phase === "inspect" && this.isShown("InspectInfo") && this.isShown("FlipButton") && this.isShown("PutBackButton"),
+      `${clueSo} ${inPlace ? "described in place with Close" : "held with description and buttons"}`,
+      () =>
+        this.phase === "inspect" &&
+        this.isShown("InspectInfo") &&
+        (inPlace ? this.isShown("CloseButton") : this.isShown("FlipButton") && this.isShown("PutBackButton")),
       4000, // the rise takes up to 2.2 s (followable pace)
     )
   }
@@ -379,9 +388,9 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     await sleep(650)
   }
 
-  /** Press Put back and wait until the clue is home (phase leaves "inspect"). */
+  /** Press Put back (or Close, for a clue described in place) and wait until phase leaves "inspect". */
   async putBack(): Promise<void> {
-    await this.tap("PutBackButton")
+    await this.tap(this.isShown("CloseButton") ? "CloseButton" : "PutBackButton")
     await this.waitUntil("clue back in its place", () => this.phase !== "inspect", 3000)
   }
 

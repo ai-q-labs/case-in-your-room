@@ -19,6 +19,8 @@ export interface ClueInfo {
   backText: string | null
   /** Caption shown when the replay figure reaches this clue. */
   replayCaption: string
+  /** Not something you pick up: it stays where it is and its description shows just above it. */
+  inPlace?: boolean
 }
 
 export interface SuspectInfo {
@@ -43,6 +45,7 @@ export const CLUES: Record<ClueId, ClueInfo> = {
       "Small, narrow prints with a pointed heel, coming in through the kitchen-side door. Not a gardener's boot.",
     backText: null,
     replayCaption: "10:40. Nora comes in through the kitchen-side door.",
+    inPlace: true,
   },
   clock: {
     id: "clock",
@@ -67,6 +70,12 @@ export const CLUES: Record<ClueId, ClueInfo> = {
   },
 }
 
+/**
+ * The order the clues light up after Start. The stopped clock is the one clue in view at Start
+ * (straight ahead on the front wall), so it lights up first; the rest are found with the arrow.
+ */
+export const REVEAL_ORDER: ClueId[] = ["clock", "memo", "footprints", "photo", "glass"]
+
 /** The order the culprit's figure visits the clues during the replay (the night's order). */
 export const REPLAY_ORDER: ClueId[] = ["footprints", "memo", "glass", "photo", "clock"]
 
@@ -89,6 +98,7 @@ export const TEXT = {
   lookAround: "Look around you",
   flip: "Flip",
   putBack: "Put back",
+  close: "Close", // not in the brief: the one button under a clue described in place (footprints)
   nothingOnBack: "Nothing on the back.",
   backPrefix: "On the back: ",
   suspectsAppeared: "The suspects have appeared",

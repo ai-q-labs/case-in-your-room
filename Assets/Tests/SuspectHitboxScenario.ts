@@ -1,7 +1,7 @@
 import {Scenario} from "Leaf.lspkg/Scenarios/scenario/Scenario"
 import {expect} from "Leaf.lspkg/Utils/common/Expect"
 import {nextFrame, sleep} from "Leaf.lspkg/Utils/common/Utils"
-import {CaseRoomLeafInteractor, SUSPECTS} from "./CaseRoomLeafInteractor"
+import {CaseRoomLeafInteractor, CLUES, SUSPECTS} from "./CaseRoomLeafInteractor"
 
 /**
  * Suspect pinch targets after the spacing change (brief: targets <= 40 cm wide, 45 cm apart; built:
@@ -23,6 +23,34 @@ export class SuspectHitboxScenario extends Scenario {
     await sleep(1500)
     await ui.reachSuspects()
     await sleep(300)
+
+    // ── Nothing from the room shows through a suspect when the line-up appears straight ahead ──
+    // (the figures are translucent; the clock on the front wall once showed through Nora's chest)
+    const screenRect = (pts: vec3[]) => {
+      const s = pts.map((p) => ui.screen(p))
+      return {x0: Math.min(...s.map((v) => v.x)), x1: Math.max(...s.map((v) => v.x)), y0: Math.min(...s.map((v) => v.y)), y1: Math.max(...s.map((v) => v.y))}
+    }
+    const corners = (o: SceneObject) => {
+      const v = o.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      const lo = v.worldAabbMin()
+      const hi = v.worldAabbMax()
+      const out: vec3[] = []
+      for (const x of [lo.x, hi.x]) for (const y of [lo.y, hi.y]) for (const z of [lo.z, hi.z]) out.push(new vec3(x, y, z))
+      return out
+    }
+    for (const s of SUSPECTS) {
+      const body = ui.child(ui.child(ui.so(s.so), "Figure"), "Body")
+      expect(!!body, `${s.so} has a Figure/Body visual`).toBe(true)
+      const fig = screenRect(corners(body))
+      for (const c of CLUES) {
+        const pts = ui.clue(c.so).worldCorners()
+        if (!pts.every((p) => p.sub(ui.eye).dot(ui.look) > 0)) continue // behind or beside the player
+        const r = screenRect(pts)
+        const overlap = r.x0 < fig.x1 && fig.x0 < r.x1 && r.y0 < fig.y1 && fig.y0 < r.y1
+        if (overlap) ui.log(`${c.so} overlaps ${s.so} on screen: clue y ${r.y0.toFixed(3)}..${r.y1.toFixed(3)}, figure y ${fig.y0.toFixed(3)}..${fig.y1.toFixed(3)}`)
+        expect(overlap, `${c.so} shows through ${s.so} when the line-up appears straight ahead`).toBe(false)
+      }
+    }
 
     const lt = ui.so("SuspectLineup").getTransform()
     const toLocal = lt.getInvertedWorldTransform()

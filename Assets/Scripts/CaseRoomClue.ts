@@ -179,6 +179,23 @@ export class CaseRoomClue extends BaseScriptComponent {
     return this.restWorldPos
   }
 
+  /** World-space corners of the clue's visible parts (its own meshes, not the glow halo). */
+  worldCorners(): vec3[] {
+    const out: vec3[] = []
+    const visit = (o: SceneObject) => {
+      if (o.name === "Glow") return
+      const v = o.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      if (v) {
+        const lo = v.worldAabbMin()
+        const hi = v.worldAabbMax()
+        for (const x of [lo.x, hi.x]) for (const y of [lo.y, hi.y]) for (const z of [lo.z, hi.z]) out.push(new vec3(x, y, z))
+      }
+      for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
+    }
+    visit(this.pivot)
+    return out
+  }
+
   /** Show the clue with a bright flash that settles into a faint glow. */
   reveal(): void {
     this.pivot.enabled = true

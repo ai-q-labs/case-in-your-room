@@ -2,7 +2,7 @@ import WorldCameraFinderProvider from "SpectaclesInteractionKit.lspkg/Providers/
 import {CaseRoomCaptionUI} from "./CaseRoomCaptionUI"
 import {CaseRoomClue} from "./CaseRoomClue"
 import {CaseRoomClueTagUI} from "./CaseRoomClueTagUI"
-import {ClueId, CLUES, counterText, REPLAY_ORDER, SUSPECTS, TEXT, TOTAL_CLUES, CULPRIT_INDEX} from "./CaseRoomData"
+import {ClueId, CLUES, counterText, REPLAY_ORDER, REVEAL_ORDER, SUSPECTS, TEXT, TOTAL_CLUES, CULPRIT_INDEX} from "./CaseRoomData"
 import {CaseRoomHudUI} from "./CaseRoomHudUI"
 import {CaseRoomInspectPanelUI} from "./CaseRoomInspectPanelUI"
 import {DEG, faceTowardYaw, flatForward, yawQuat} from "./CaseRoomMeshes"
@@ -123,23 +123,23 @@ export class CaseRoomMain extends BaseScriptComponent {
   @ui.label('<span style="color: #60A5FA;">Sounds</span>')
   @ui.group_start("Sounds")
   @input
-  @hint("Chime when clue 1 (memo) lights up after Start")
+  @hint("Chime for the 1st clue to light up after Start (REVEAL_ORDER; rising pitch)")
   chime1: AudioTrackAsset
 
   @input
-  @hint("Chime when clue 2 (footprints) lights up")
+  @hint("Chime for the 2nd clue to light up after Start (REVEAL_ORDER; rising pitch)")
   chime2: AudioTrackAsset
 
   @input
-  @hint("Chime when clue 3 (stopped clock) lights up")
+  @hint("Chime for the 3rd clue to light up after Start (REVEAL_ORDER; rising pitch)")
   chime3: AudioTrackAsset
 
   @input
-  @hint("Chime when clue 4 (broken glass) lights up")
+  @hint("Chime for the 4th clue to light up after Start (REVEAL_ORDER; rising pitch)")
   chime4: AudioTrackAsset
 
   @input
-  @hint("Chime when clue 5 (torn photo) lights up")
+  @hint("Chime for the 5th clue to light up after Start (REVEAL_ORDER; rising pitch)")
   chime5: AudioTrackAsset
   @ui.group_end
 
@@ -180,6 +180,11 @@ export class CaseRoomMain extends BaseScriptComponent {
   @hint("Share of the view the inspected clue + description + buttons may fill, edge to edge (leaves a margin for stepping closer)")
   @widget(new SliderWidget(0.5, 1, 0.01))
   inspectViewFill: number = 0.85
+
+  @input
+  @hint("Gap in degrees, as the player sees it, between a clue described in place (footprints) and the bottom of its description")
+  @widget(new SliderWidget(0, 10, 0.5))
+  inPlaceGapDeg: number = 2
 
   @input
   @hint("Average turn rate (deg/s) of an inspected clue on its way to the hands, as seen from the eye (slow enough to follow)")
@@ -255,22 +260,24 @@ export class CaseRoomMain extends BaseScriptComponent {
     }
     this.inspectPanel.onFlip.add(() => this.onFlip())
     this.inspectPanel.onPutBack.add(() => this.onPutBack())
+    this.inspectPanel.onClose.add(() => this.onPutBack()) // closing an in-place clue counts like Put back
     for (const s of this.suspects) s.onPressed.add((i) => this.onSuspectPressed(i))
     this.suspectsUI.onAccuse.add(() => this.onAccuse())
     this.setupChimes()
     this.log("ready")
   }
 
-  /** One chime per clue (rising pitch, Assets/GeneratedSFX), played as each clue lights up after Start. */
+  /** One chime per clue (Assets/GeneratedSFX), rising in pitch in the order the clues light up after Start. */
   private setupChimes(): void {
     const tracks = [this.chime1, this.chime2, this.chime3, this.chime4, this.chime5]
-    this.chimes = this.clues.map((c, i) => {
-      if (!tracks[i]) {
-        print(`[CaseRoomMain] chime${i + 1} not wired; clue ${i + 1} lights up silently`)
+    this.chimes = this.clues.map((c) => {
+      const j = REVEAL_ORDER.indexOf(c.info.id)
+      if (!tracks[j]) {
+        print(`[CaseRoomMain] chime${j + 1} not wired; ${c.info.id} lights up silently`)
         return null
       }
       const a = c.getSceneObject().createComponent("Component.AudioComponent") as AudioComponent
-      a.audioTrack = tracks[i]
+      a.audioTrack = tracks[j]
       a.playbackMode = Audio.PlaybackMode.LowLatency
       a.volume = 0.6
       return a
@@ -308,15 +315,15 @@ export class CaseRoomMain extends BaseScriptComponent {
     for (const s of [this.standInDesk, this.standInChair, this.standInWall]) s.setVisible(true)
     for (const c of this.clues) c.captureRestPose()
 
-    // Nothing is in view at Start (the two front clues sit 45 degrees to the side and 34-47 degrees
-    // down), so each clue's light-up sends a light trail from in front of the player round to it.
-    const guideFrom = new vec3(eye.x, eye.y - 25, eye.z).add(fwd.uniformScale(100))
-    this.clues.forEach((c, i) => {
-      this.delay(0.4 + i * 0.45, () => {
+    // The stopped clock (straight ahead, on the front wall) is the one clue in view at Start, so it lights
+    // up first, once the board has faded; the arrow then leads to the others.
+    REVEAL_ORDER.forEach((id, j) => {
+      const i = this.clues.indexOf(this.clueById(id))
+      const c = this.clues[i]
+      this.delay(0.6 + j * 0.45, () => {
         c.reveal()
         c.setInteractive(true)
         if (this.chimes[i]) this.chimes[i].play(1)
-        this.replay.guide(`StartGuide_${c.getSceneObject().name}`, eye, fwd, guideFrom, c.restPosition)
       })
     })
     this.caption.showCaption(TEXT.lookAround, 3)
@@ -348,6 +355,10 @@ export class CaseRoomMain extends BaseScriptComponent {
     c.setGlowMode("off") // the halo is wider than the clue; in the hands it would only crowd the view
 
     const eye = this.camT.getWorldPosition()
+    if (c.info.inPlace) {
+      this.describeInPlace(c, eye)
+      return
+    }
     const scale = Math.min(2, this.inspectMaxSizeCm / Math.max(1, c.maxDimensionCm))
     const size = c.sizeCmUpright.uniformScale(scale)
     const hold = this.fitInspect(eye, size)
@@ -407,9 +418,49 @@ export class CaseRoomMain extends BaseScriptComponent {
     return {pos, rot, k, dist}
   }
 
+  /**
+   * A clue that is not picked up (footprints): it stays where it is, and its name, description and a
+   * Close button appear just above it as the player sees it (bottom edge inPlaceGapDeg above the clue's
+   * highest visible point, so the panel never covers it), facing the player, at the same apparent size
+   * as a clue held at inspectDistanceCm (shrunk if that would overfill the view of a player looking at it).
+   */
+  private describeInPlace(c: CaseRoomClue, eye: vec3): void {
+    const r = this.inspectPanel.groupRectInPlace()
+    const halfW = (r.max.x - r.min.x) / 2
+    const halfH = (r.max.y - r.min.y) / 2
+    const tanH = Math.tan(this.cam.fov / 2) * this.cam.aspect * this.inspectViewFill
+    const tanV = Math.tan(this.cam.fov / 2) * this.inspectViewFill
+    const rest = c.restPosition
+    const dist = rest.sub(eye).length
+    const k = Math.min(dist / this.inspectDistanceCm, (dist * tanH) / halfW, (dist * tanV) / halfH)
+    // Angles measured from the line of sight to the clue, upward in the vertical plane that contains it.
+    const toClue = rest.sub(eye).normalize()
+    let up = vec3.up().sub(toClue.uniformScale(toClue.y))
+    up = up.length > 1e-3 ? up.normalize() : vec3.forward()
+    let top = 0
+    for (const p of c.worldCorners()) {
+      const v = p.sub(eye)
+      top = Math.max(top, Math.atan2(v.dot(up), v.dot(toClue)))
+    }
+    const lift = top + this.inPlaceGapDeg * DEG + Math.atan2(halfH * k, dist)
+    const dir = toClue.uniformScale(Math.cos(lift)).add(up.uniformScale(Math.sin(lift)))
+    const center = eye.add(dir.uniformScale(dist))
+    const rot = quat.lookAt(dir.uniformScale(-1), vec3.up())
+    const cx = ((r.min.x + r.max.x) / 2) * k
+    const cy = ((r.min.y + r.max.y) / 2) * k
+    const pos = center.sub(rot.multiplyVec3(vec3.right()).uniformScale(cx)).sub(rot.multiplyVec3(vec3.up()).uniformScale(cy))
+    const t = this.inspectPanel.getSceneObject().getTransform()
+    t.setWorldPosition(pos)
+    t.setWorldRotation(rot)
+    t.setWorldScale(vec3.one().uniformScale(k))
+    this.inspectPanel.layoutInPlace()
+    this.inspectPanel.show(c.info.name, c.info.description, true)
+    this.log(`describe ${c.info.id} in place: ${dist.toFixed(1)} cm away, scale ${k.toFixed(2)}, ${(lift / DEG).toFixed(1)} deg above it`)
+  }
+
   private onFlip(): void {
     const c = this.inspecting
-    if (this.phase !== "inspect" || !c) return
+    if (this.phase !== "inspect" || !c || c.info.inPlace) return
     c.flip(0.5)
     const back = c.info.backText
     this.inspectPanel.setBackText(c.isFlipped ? (back ? TEXT.backPrefix + back : TEXT.nothingOnBack) : "")
@@ -422,7 +473,7 @@ export class CaseRoomMain extends BaseScriptComponent {
     this.inspecting = null
     this.inspectPanel.hide()
     const firstTime = !c.inspected
-    c.returnToRest(0.6, () => {
+    c.returnToRest(c.info.inPlace ? 0.05 : 0.6, () => {
       c.markInspected()
       this.hud.setVisible(true)
       if (firstTime) {
