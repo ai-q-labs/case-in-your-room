@@ -35,25 +35,26 @@
     chime3: false
     chime4: false
     chime5: false
+    clearanceCm: false
+    clearanceDepthCm: false
     clueClock: false
     clueFootprints: false
     clueGlass: false
     clueMemo: false
     cluePhoto: false
     clueTag: false
+    counterGapCm: false
     crimeScene: false
     debugLog: false
     eyeHeightCm: false
     hud: false
     inPlaceGapDeg: false
     inspectDistanceCm: false
-    inspectDropCm: false
-    inspectMaxDistanceCm: false
-    inspectMaxSizeCm: false
+    inspectNearCm: false
     inspectPanel: false
-    inspectRiseDegPerSec: false
     inspectViewFill: false
     lineupDistanceCm: false
+    lineupViewFill: false
     openingBoard: false
     replay: false
     standInChair: false
@@ -103,13 +104,14 @@
       eyeHeightCm: !<float> 160.000000
       boardDistanceCm: !<float> 120.000000
       inspectDistanceCm: !<float> 50.000000
-      inspectDropCm: !<float> 18.000000
-      inspectMaxSizeCm: !<float> 14.000000
-      inspectMaxDistanceCm: !<float> 60.000000
       inspectViewFill: 0.850000
       inPlaceGapDeg: !<float> 2.000000
-      inspectRiseDegPerSec: !<float> 30.000000
+      counterGapCm: !<float> 3.000000
+      clearanceCm: !<float> 2.000000
+      clearanceDepthCm: !<float> 5.000000
+      inspectNearCm: !<float> 35.000000
       lineupDistanceCm: !<float> 200.000000
+      lineupViewFill: 0.850000
       debugLog: true
   ScriptTypes:
     -
@@ -158,7 +160,12 @@
     - '// @input float inspectDistanceCm = 50 {"hint":"Viewing distance, in cm, whose look the description and buttons copy: shown just above a clue that is farther away, they are scaled up so they look as big as at this distance", "widget":"slider", "min":30, "max":100, "step":1}'
     - '// @input float inspectViewFill = 0.85 {"hint":"Share of the view the description + buttons may fill, edge to edge, for a player looking at them", "widget":"slider", "min":0.5, "max":1, "step":0.01}'
     - '// @input float inPlaceGapDeg = 2 {"hint":"Gap in degrees, as the player sees it, between the top of a clue and the bottom of its description", "widget":"slider", "min":0, "max":10, "step":0.5}'
-    - '// @input float lineupDistanceCm = 200 {"hint":"Distance of the suspect line-up straight ahead, in cm", "widget":"slider", "min":100, "max":300, "step":1}'
+    - '// @input float counterGapCm = 3 {"hint":"Gap, in cm at the inspect look, between the top of an open description and the counter standing above it", "widget":"slider", "min":0, "max":10, "step":0.5}'
+    - '// @input float clearanceCm = 2 {"hint":"Margin, in cm at the inspect look, around the description, buttons and counter that must be clear of furniture and other clues", "widget":"slider", "min":0, "max":6, "step":0.5}'
+    - '// @input float clearanceDepthCm = 5 {"hint":"How far in front of the nearest thing in the way a description is drawn when it has to come nearer than its clue, in cm", "widget":"slider", "min":1, "max":20, "step":0.5}'
+    - '// @input float inspectNearCm = 35 {"hint":"Nearest a description may come to the eyes when something stands in front of its clue, in cm", "widget":"slider", "min":25, "max":80, "step":1}'
+    - '// @input float lineupDistanceCm = 200 {"hint":"Nearest the suspect line-up may stand straight ahead, in cm (it stands farther when it would not fit the view)", "widget":"slider", "min":100, "max":300, "step":1}'
+    - '// @input float lineupViewFill = 0.85 {"hint":"Share of the view the whole line-up (figures, names, alibi bubble, Accuse button) may fill, edge to edge, for a player looking level at it", "widget":"slider", "min":0.5, "max":1, "step":0.01}'
     - '// @ui {"widget":"group_end"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"group_start", "label":"Debug"}'

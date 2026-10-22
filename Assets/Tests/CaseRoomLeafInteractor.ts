@@ -1,12 +1,17 @@
 import {DefaultLeafInteractor} from "Leaf.lspkg/Interactors/interactor/DefaultLeafInteractor"
 import {findInteractablesByName} from "Leaf.lspkg/Interactors/InteractableUtils"
 import {expect} from "Leaf.lspkg/Utils/common/Expect"
+import {UpdateDispatcher} from "Leaf.lspkg/Utils/common/UpdateDispatcher"
 import {findSceneObjectByName, nextFrame, sleep} from "Leaf.lspkg/Utils/common/Utils"
 import {Interactable} from "SpectaclesInteractionKit.lspkg/Components/Interaction/Interactable/Interactable"
 import WorldCameraFinderProvider from "SpectaclesInteractionKit.lspkg/Providers/CameraProvider/WorldCameraFinderProvider"
+import {BackPlate} from "SpectaclesUIKit.lspkg/Scripts/BackPlate"
+import {Button} from "SpectaclesUIKit.lspkg/Scripts/Components/Button/Button"
 import {CaseRoomClue} from "../Scripts/CaseRoomClue"
 import {CaseRoomHudUI} from "../Scripts/CaseRoomHudUI"
 import {CaseRoomMain} from "../Scripts/CaseRoomMain"
+import {SolidBox} from "../Scripts/CaseRoomSightline"
+import {CaseRoomStandIn} from "../Scripts/CaseRoomStandIn"
 import {CaseRoomSuspect} from "../Scripts/CaseRoomSuspect"
 
 /**
@@ -114,6 +119,31 @@ export function unquote(s: string): string {
 }
 
 const RAD2DEG = 180 / Math.PI
+
+/** The stand-in furniture, by SceneObject name. */
+export const STAND_INS = ["StandIn_Desk", "StandIn_Chair", "StandIn_ClockWall"]
+
+/** Where the head is and which way it faces (the camera's axes). */
+export interface ViewBasis {
+  eye: vec3
+  fwd: vec3
+  right: vec3
+  up: vec3
+}
+
+/** A rectangle in view coordinates (x right, y up; -1..1 = edge to edge of the view). */
+export interface ViewRect {
+  x0: number
+  x1: number
+  y0: number
+  y1: number
+}
+
+/** A named solid box of the room. */
+export interface NamedSolid {
+  name: string
+  box: SolidBox
+}
 
 /**
  * Shared LEAF helper for "Case in Your Room": scripted SIK interactions by SceneObject name,
@@ -376,6 +406,299 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
   /** World-space far end of a thread (its mesh is a unit box from local z=0 to z=1). */
   threadEnd(thread: SceneObject): vec3 {
     return thread.getTransform().getWorldTransform().multiplyPoint(new vec3(0, 0, 1))
+  }
+
+  // ── Holding the head ─────────────────────────────────────────────────────────
+
+  private heldRot: quat | null = null
+  private heldPos: vec3 | null = null
+  private stopHolding: (() => void) | null = null
+
+  /**
+   * Hold the head at a pose every frame from now on (the preview re-poses the camera each frame, as LEAF's
+   * IK head does). `pos` null keeps the preview's position. releaseHead() hands the head back.
+   */
+  holdHead(rot: quat | null, pos: vec3 | null = null): void {
+    this.heldRot = rot
+    this.heldPos = pos
+    const t = this.cam.getTransform()
+    if (pos) t.setWorldPosition(pos)
+    if (rot) t.setWorldRotation(rot)
+    if (!this.stopHolding) {
+      this.stopHolding = UpdateDispatcher.getInstance().onUpdate.add(() => {
+        if (this.heldPos) t.setWorldPosition(this.heldPos)
+        if (this.heldRot) t.setWorldRotation(this.heldRot)
+      })
+    }
+  }
+
+  releaseHead(): void {
+    if (this.stopHolding) this.stopHolding()
+    this.stopHolding = null
+    this.heldRot = null
+    this.heldPos = null
+  }
+
+  /** The head rotation that looks along `dir`, upright. */
+  lookRot(dir: vec3): quat {
+    return quat.lookAt(dir.uniformScale(-1), vec3.up())
+  }
+
+  // ── What the player sees ─────────────────────────────────────────────────────
+
+  basis(): ViewBasis {
+    const t = this.cam.getTransform()
+    return {eye: t.getWorldPosition(), fwd: t.back, right: t.right, up: t.up}
+  }
+
+  /** View coordinates of `p` (x right, y up; +-1 = the view's edges), or null when it is behind the eye. */
+  viewXY(p: vec3, b: ViewBasis): vec2 | null {
+    const v = p.sub(b.eye)
+    const z = v.dot(b.fwd)
+    if (z <= 1e-3) return null
+    const tanV = Math.tan(this.cam.fov / 2)
+    const tanH = tanV * this.cam.aspect
+    return new vec2(v.dot(b.right) / (z * tanH), v.dot(b.up) / (z * tanV))
+  }
+
+  /** Largest |view coordinate| over the points (1 = on the view edge; > 1 = outside; 99 = behind the eye). */
+  fill(pts: vec3[], b: ViewBasis): number {
+    let m = 0
+    for (const p of pts) {
+      const xy = this.viewXY(p, b)
+      if (!xy) return 99
+      m = Math.max(m, Math.abs(xy.x), Math.abs(xy.y))
+    }
+    return m
+  }
+
+  /** The view rectangle around the points, or null if any is behind the eye. */
+  viewRect(pts: vec3[], b: ViewBasis): ViewRect | null {
+    const r = {x0: Infinity, x1: -Infinity, y0: Infinity, y1: -Infinity}
+    for (const p of pts) {
+      const xy = this.viewXY(p, b)
+      if (!xy) return null
+      r.x0 = Math.min(r.x0, xy.x)
+      r.x1 = Math.max(r.x1, xy.x)
+      r.y0 = Math.min(r.y0, xy.y)
+      r.y1 = Math.max(r.y1, xy.y)
+    }
+    return r
+  }
+
+  overlaps(a: ViewRect, b: ViewRect): boolean {
+    return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
+  }
+
+  rectText(r: ViewRect | null): string {
+    return r ? `x ${r.x0.toFixed(2)}..${r.x1.toFixed(2)}, y ${r.y0.toFixed(2)}..${r.y1.toFixed(2)}` : "behind the eye"
+  }
+
+  /**
+   * Corners of what is drawn under `root` (4 per plate, button or non-empty text, in that order). UIKit plates
+   * and buttons are drawn by a shader on a placeholder mesh, so their AABB is not what you see (a plate's box
+   * measured 1.00 of the view where the screenshot shows 0.77); they and text use their layout rectangles.
+   * `names` gets the SceneObject name of each corner.
+   */
+  drawnCorners(root: string, names: string[] = []): vec3[] {
+    const out: vec3[] = []
+    const rect = (o: SceneObject, w: number, h: number, cx: number = 0, cy: number = 0) => {
+      const m = o.getTransform().getWorldTransform()
+      for (const x of [cx - w / 2, cx + w / 2])
+        for (const y of [cy - h / 2, cy + h / 2]) {
+          out.push(m.multiplyPoint(new vec3(x, y, 0)))
+          names.push(o.name)
+        }
+    }
+    const visit = (o: SceneObject) => {
+      if (!o.isEnabledInHierarchy) return
+      const plate = o.getComponent(BackPlate.getTypeName()) as BackPlate
+      const button = o.getComponent(Button.getTypeName()) as Button
+      if (plate) rect(o, plate.size.x, plate.size.y)
+      else if (button) rect(o, button.size.x, button.size.y)
+      for (const t of o.getComponents("Component.Text") as Text[]) {
+        if (t.text === "") continue // empty line: draws nothing
+        const r = t.layoutRect
+        rect(o, r.right - r.left, r.top - r.bottom, (r.left + r.right) / 2, (r.top + r.bottom) / 2)
+      }
+      for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
+    }
+    visit(this.so(root))
+    return out
+  }
+
+  /** The open description and its buttons. */
+  descriptionCorners(names: string[] = []): vec3[] {
+    return this.drawnCorners("InspectInfo", names)
+      .concat(this.drawnCorners("InspectFlipButtons", names))
+      .concat(this.drawnCorners("InspectCloseButtons", names))
+  }
+
+  /** Each group of 4 corners (one drawn rectangle) and its centre. */
+  withCentres(pts: vec3[], names: string[]): {pts: vec3[]; names: string[]} {
+    const p = pts.slice()
+    const n = names.slice()
+    for (let i = 0; i + 3 < pts.length; i += 4) {
+      p.push(pts[i].add(pts[i + 1]).add(pts[i + 2]).add(pts[i + 3]).uniformScale(0.25))
+      n.push(`${names[i]} centre`)
+    }
+    return {pts: p, names: n}
+  }
+
+  centroid(pts: vec3[]): vec3 {
+    let sum = vec3.zero()
+    for (const p of pts) sum = sum.add(p)
+    return sum.uniformScale(1 / Math.max(1, pts.length))
+  }
+
+  // ── What can stand in the way ────────────────────────────────────────────────
+
+  standIn(name: string): CaseRoomStandIn {
+    return this.so(name).getComponent(CaseRoomStandIn.getTypeName()) as CaseRoomStandIn
+  }
+
+  /** The room's solid things: every stand-in's boxes and every clue's mesh boxes, except `skipClueSo`'s. */
+  solids(skipClueSo: string = ""): NamedSolid[] {
+    const out: NamedSolid[] = []
+    for (const n of STAND_INS) for (const box of this.standIn(n).worldBoxes()) out.push({name: n, box})
+    for (const c of CLUES) {
+      if (c.so === skipClueSo) continue
+      for (const box of this.clue(c.so).worldBoxes()) out.push({name: c.so, box})
+    }
+    return out
+  }
+
+  /**
+   * The stand-ins' boxes are what is drawn: for each stand-in, the bounding box of its boxes' corners and the
+   * bounding box of its drawn mesh agree (within 0.5 cm). Returns the mismatches.
+   */
+  standInBoxProblems(): string[] {
+    const out: string[] = []
+    for (const n of STAND_INS) {
+      const boxes = this.standIn(n).worldBoxes()
+      if (boxes.length === 0) {
+        out.push(`${n} has no boxes (hidden?)`)
+        continue
+      }
+      // A vec3 cannot hold Infinity (it reads back as 0), so start from a large finite size.
+      let lo = new vec3(1e9, 1e9, 1e9)
+      let hi = new vec3(-1e9, -1e9, -1e9)
+      for (const b of boxes) {
+        for (const sx of [-1, 1])
+          for (const sy of [-1, 1])
+            for (const sz of [-1, 1]) {
+              const p = b.center
+                .add(b.axes[0].uniformScale(sx * b.half.x))
+                .add(b.axes[1].uniformScale(sy * b.half.y))
+                .add(b.axes[2].uniformScale(sz * b.half.z))
+              lo = new vec3(Math.min(lo.x, p.x), Math.min(lo.y, p.y), Math.min(lo.z, p.z))
+              hi = new vec3(Math.max(hi.x, p.x), Math.max(hi.y, p.y), Math.max(hi.z, p.z))
+            }
+      }
+      const visual = this.child(this.so(n), "StandInVisual")
+      const meshSo = visual ? this.child(visual, "Mesh") : null
+      if (!meshSo) {
+        out.push(`${n} has no drawn mesh`)
+        continue
+      }
+      const mesh = meshSo.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      const d =Math.max(lo.distance(mesh.worldAabbMin()), hi.distance(mesh.worldAabbMax()))
+      if (d > 0.5) {
+        const list = boxes.map((b) => `c ${b.center} h ${b.half} x ${b.axes[0]}`).join(" | ")
+        out.push(`${n}: boxes span ${lo}..${hi}, mesh ${mesh.worldAabbMin()}..${mesh.worldAabbMax()}; boxes: ${list}`)
+      }
+    }
+    return out
+  }
+
+  /** Where (0..1 along a -> b) the segment first enters the box, or -1 if it misses it. */
+  segmentEnters(a: vec3, b: vec3, box: SolidBox): number {
+    let t0 = 0
+    let t1 = 1
+    const d = b.sub(a)
+    const h = [box.half.x, box.half.y, box.half.z]
+    for (let i = 0; i < 3; i++) {
+      const o = a.sub(box.center).dot(box.axes[i])
+      const v = d.dot(box.axes[i])
+      if (Math.abs(v) < 1e-9) {
+        if (Math.abs(o) > h[i]) return -1
+        continue
+      }
+      let ta = (-h[i] - o) / v
+      let tb = (h[i] - o) / v
+      if (ta > tb) [ta, tb] = [tb, ta]
+      t0 = Math.max(t0, ta)
+      t1 = Math.min(t1, tb)
+      if (t0 > t1) return -1
+    }
+    return t0
+  }
+
+  /** For each point hidden from `eye` by one of `solids`: "<point> behind <solid>". */
+  hiddenBy(eye: vec3, pts: vec3[], names: string[], solids: NamedSolid[]): string[] {
+    const out: string[] = []
+    pts.forEach((p, i) => {
+      for (const s of solids) {
+        const t = this.segmentEnters(eye, p, s.box)
+        if (t >= 0 && t < 0.999) {
+          out.push(`${names[i]} behind ${s.name} (${(t * eye.distance(p)).toFixed(0)} cm from the eye)`)
+          break
+        }
+      }
+    })
+    return out
+  }
+
+  /** Name of the nearest *Button ancestor of the first collider a ray hits, "other:<name>" for any other collider, "" for none. */
+  async firstButtonHit(probe: Probe, start: vec3, end: vec3): Promise<string> {
+    let result: string | null = null
+    probe.rayCast(start, end, (hit) => {
+      if (!hit) {
+        result = ""
+        return
+      }
+      let o = hit.collider.getSceneObject()
+      while (o && !o.name.endsWith("Button")) o = o.getParent()
+      result = o ? o.name : `other:${hit.collider.getSceneObject().name}`
+    })
+    for (let i = 0; i < 30 && result === null; i++) await nextFrame()
+    if (result === null) throw new Error("ray cast never returned")
+    return result
+  }
+
+  /**
+   * Rays from the eye and from a right-hand position (20 cm right, 35 cm down, 25 cm forward of the eye,
+   * with the head as in `b`) to each shown button of the open description: the first thing each ray hits
+   * must be that button. Returns the problems.
+   */
+  async buttonRayProblems(probe: Probe, b: ViewBasis, label: string): Promise<string[]> {
+    const out: string[] = []
+    const hand = b.eye.add(b.right.uniformScale(20)).add(b.up.uniformScale(-35)).add(b.fwd.uniformScale(25))
+    for (const btn of ["FlipButton", "CloseButton"]) {
+      if (!this.isShown(btn)) continue
+      const target = this.world(btn)
+      for (const [who, origin] of [["eye", b.eye], ["right hand", hand]] as [string, vec3][]) {
+        const end = origin.add(target.sub(origin).normalize().uniformScale(target.sub(origin).length + 30))
+        const hit = await this.firstButtonHit(probe, origin, end)
+        if (hit !== btn) out.push(`${label}: ray from the ${who} to ${btn} hits ${hit || "nothing"} first`)
+      }
+    }
+    return out
+  }
+
+  /**
+   * While a description is open: the arrows are put away, the counter stands still (pinned) and does not
+   * overlap the description as seen with the head as in `b`. Returns the problems.
+   */
+  counterProblems(b: ViewBasis, label: string): string[] {
+    const out: string[] = []
+    if (this.arrowShown("TurnArrow") || this.arrowShown("TiltArrow")) out.push(`${label}: an arrow is shown while the description is open`)
+    if (!this.isShown("CounterPanel")) out.push(`${label}: counter not shown`)
+    if (!this.hud.isPinned) out.push(`${label}: counter still following the head`)
+    const d = this.viewRect(this.descriptionCorners(), b)
+    const c = this.viewRect(this.drawnCorners("CounterPanel"), b)
+    if (d && c && this.overlaps(d, c)) out.push(`${label}: counter (${this.rectText(c)}) overlaps the description (${this.rectText(d)})`)
+    return out
   }
 
   // ── Assertions ───────────────────────────────────────────────────────────────

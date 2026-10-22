@@ -28,6 +28,9 @@ export class CaseRoomLazyFollow extends BaseScriptComponent {
   followSpeed: number = 2.0
   @ui.group_end
 
+  /** While true the object stays where it was put (e.g. the counter standing above an open description). */
+  paused = false
+
   private camT: Transform = null
   private snapNext = true
 
@@ -45,7 +48,7 @@ export class CaseRoomLazyFollow extends BaseScriptComponent {
   }
 
   private follow(): void {
-    if (!this.camT) return
+    if (!this.camT || this.paused) return
     const eye = this.camT.getWorldPosition()
     const fwd = this.camT.back
     const up = this.camT.up

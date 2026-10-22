@@ -1,12 +1,7 @@
 import {Scenario} from "Leaf.lspkg/Scenarios/scenario/Scenario"
 import {expect} from "Leaf.lspkg/Utils/common/Expect"
-import {UpdateDispatcher} from "Leaf.lspkg/Utils/common/UpdateDispatcher"
 import {nextFrame, sleep} from "Leaf.lspkg/Utils/common/Utils"
-import {BackPlate} from "SpectaclesUIKit.lspkg/Scripts/BackPlate"
-import {Button} from "SpectaclesUIKit.lspkg/Scripts/Components/Button/Button"
 import {CaseRoomLeafInteractor, CLUES} from "./CaseRoomLeafInteractor"
-
-// UIKit types above are used to measure plates and buttons by their layout size (see groupCorners).
 
 /**
  * Opening each clue the way a player does: look at it, pinch, read its description where it lies.
@@ -17,13 +12,16 @@ import {CaseRoomLeafInteractor, CLUES} from "./CaseRoomLeafInteractor"
  *  - the clue does not move;
  *  - the description's bottom edge sits just above the clue's top as seen from the eye (never covering it),
  *    centred over it, facing the player, at the same apparent size as at 50 cm (shrunk only to fit the view);
- *  - how much of the view the description and buttons fill ("fill" = the largest |normalized screen
- *    coordinate| over all their corners; 1.0 = touching the view edge);
+ *  - how much of the view the description and buttons fill ("fill" = the largest |view coordinate| over all
+ *    their corners; 1.0 = touching the view edge);
+ *  - the arrows are put away and the counter stands above the description without overlapping it, looking
+ *    at the clue and looking at the description, and is in view when the description is;
+ *  - nothing solid (stand-in furniture, another clue) hides any part of the description, buttons or counter;
  *  - "Flip" next to "Close" for every clue but the footprints;
  *  - rays from the eye and from a right-hand position to each button reach that button first (no clue's
  *    pinch target, and not the counter, sits in the way);
  *  - Flip turns the clue over where it lies without sinking into what it rests on, and puts it back down;
- *  - Close counts it.
+ *  - Close counts it, and the counter goes back under the line of sight.
  */
 const MAX_FILL = 0.92
 const DEG = Math.PI / 180
@@ -36,40 +34,25 @@ const SUPPORT: Record<string, "below" | "behind" | "none"> = {
   Clue_TornPhoto: "none",
 }
 
-interface Basis {
-  eye: vec3
-  fwd: vec3
-  right: vec3
-  up: vec3
-}
-
 @component
 export class InspectFitScenario extends Scenario {
   async run(): Promise<void> {
     const ui = new CaseRoomLeafInteractor("InspectFit")
     await sleep(1500)
     await ui.startGame()
-    const camT = ui.cam.getTransform()
-    // The preview re-poses the camera every frame, so the head is held each frame (as LEAF's IK head does).
-    let hold: quat | null = null
-    const unsubscribe = UpdateDispatcher.getInstance().onUpdate.add(() => {
-      if (hold) camT.setWorldRotation(hold)
-    })
-    const look = (dir: vec3) => quat.lookAt(dir.uniformScale(-1), vec3.up())
     const angle = (a: vec3, b: vec3) => Math.acos(Math.max(-1, Math.min(1, a.dot(b)))) / DEG
-    const tanV = Math.tan(ui.cam.fov / 2)
-    const tanH = tanV * ui.cam.aspect
     ui.log(`view: vertical fov ${(ui.cam.fov / DEG).toFixed(1)} deg, aspect ${ui.cam.aspect.toFixed(3)}`)
     const probe = Physics.createGlobalProbe()
 
     const problems: string[] = []
+    problems.push(...ui.standInBoxProblems())
     try {
       for (const c of CLUES) {
         // Look at the clue's place, as a player does before pinching it.
         const clue = ui.clue(c.so)
         const rest = clue.restPosition
         const aim = rest.sub(ui.eye).normalize()
-        hold = look(aim)
+        ui.holdHead(ui.lookRot(aim))
         await nextFrame()
         await nextFrame()
         expect(angle(ui.look, aim) < 1, `${c.so}: head aimed at the clue before the pinch`).toBe(true)
@@ -90,8 +73,8 @@ export class InspectFitScenario extends Scenario {
 
         // ── Where the description sits, as the player saw it at the pinch ──
         const names: string[] = []
-        let pts = this.groupCorners(ui, names)
-        const mid = this.centroid(pts)
+        let pts = ui.descriptionCorners(names)
+        const mid = ui.centroid(pts)
         const toClue = rest.sub(eye).normalize()
         const upC = vec3.up().sub(toClue.uniformScale(toClue.y)).normalize()
         const elev = (p: vec3) => Math.atan2(p.sub(eye).dot(upC), p.sub(eye).dot(toClue)) / DEG
@@ -105,40 +88,44 @@ export class InspectFitScenario extends Scenario {
         const k = ui.so("InspectInfo").getTransform().getWorldScale().x
         const flip = ui.hasFlip(c.so)
         ui.log(
-          `${c.so}: ${dist.toFixed(0)} cm away, description scale ${k.toFixed(2)} (same look as at 50 cm: ${(dist / 50).toFixed(2)}), ` +
-            `bottom ${gapDeg.toFixed(1)} deg above its top, centre ${off.toFixed(1)} cm to the side, facing (cos ${facing.toFixed(3)}), ` +
-            `Flip ${ui.isShown("FlipButton")}, Close ${ui.isShown("CloseButton")}`,
+          `${c.so}: ${dist.toFixed(0)} cm away, description ${mid.distance(eye).toFixed(0)} cm away at scale ${k.toFixed(2)} ` +
+            `(same look as at 50 cm: ${(mid.distance(eye) / 50).toFixed(2)}), bottom ${gapDeg.toFixed(1)} deg above its top, ` +
+            `centre ${off.toFixed(1)} cm to the side, facing (cos ${facing.toFixed(3)}), Flip ${ui.isShown("FlipButton")}, Close ${ui.isShown("CloseButton")}`,
         )
         if (gapDeg < 0.5 || gapDeg > 8) problems.push(`${c.so} description bottom ${gapDeg.toFixed(1)} deg above it (0.5-8: just above, never covering it)`)
         if (off > 0.1 * dist) problems.push(`${c.so} description centre ${off.toFixed(1)} cm to the side of it (max ${(0.1 * dist).toFixed(0)})`)
         if (facing < 0.98) problems.push(`${c.so} description not facing the player (cos ${facing.toFixed(3)})`)
         if (k > dist / 50 + 0.01) problems.push(`${c.so} description drawn bigger (${k.toFixed(2)}) than at 50 cm (${(dist / 50).toFixed(2)})`)
         if (ui.isShown("FlipButton") !== flip || !ui.isShown("CloseButton")) problems.push(`${c.so} should show ${flip ? "Flip and Close" : "Close only"}`)
+        problems.push(...ui.counterProblems(ui.basis(), `${c.so}, looking at the clue`))
+        const seen = ui.withCentres(pts.concat(ui.drawnCorners("CounterPanel", names)), names)
+        problems.push(...ui.hiddenBy(eye, seen.pts, seen.names, ui.solids(c.so)).map((h) => `${c.so}: ${h}`))
 
-        // ── Looking at the description: how much of the view it fills ──
-        hold = look(mid.sub(eye).normalize())
+        // ── Looking at the description: how much of the view it fills; the counter at the top ──
+        ui.holdHead(ui.lookRot(mid.sub(eye).normalize()))
         await nextFrame()
         await nextFrame()
         names.length = 0
-        pts = this.groupCorners(ui, names)
-        const b = this.basis(ui)
-        const fill = this.fill(pts, b, tanH, tanV)
+        pts = ui.descriptionCorners(names)
+        const b = ui.basis()
+        const fill = ui.fill(pts, b)
         const worst = new Map<string, number>()
-        pts.forEach((p, i) => worst.set(names[i], Math.max(worst.get(names[i]) || 0, this.fill([p], b, tanH, tanV))))
+        pts.forEach((p, i) => worst.set(names[i], Math.max(worst.get(names[i]) || 0, ui.fill([p], b))))
         const top = Array.from(worst.entries()).sort((x, y) => y[1] - x[1]).slice(0, 3)
-        ui.log(`${c.so}: fill ${fill.toFixed(3)} (outermost ${top.map((e) => `${e[0]}=${e[1].toFixed(2)}`).join(", ")})`)
+        const desc = ui.viewRect(pts, b)
+        const counter = ui.viewRect(ui.drawnCorners("CounterPanel"), b)
+        const counterFill = ui.fill(ui.drawnCorners("CounterPanel"), b)
+        ui.log(
+          `${c.so}: fill ${fill.toFixed(3)} (outermost ${top.map((e) => `${e[0]}=${e[1].toFixed(2)}`).join(", ")}); ` +
+            `description ${ui.rectText(desc)}, counter ${ui.rectText(counter)}`,
+        )
         if (fill > MAX_FILL) problems.push(`${c.so} description fills ${fill.toFixed(3)} of the view (max ${MAX_FILL})`)
+        problems.push(...ui.counterProblems(b, `${c.so}, looking at the description`))
+        if (counterFill > MAX_FILL) problems.push(`${c.so}: counter out at ${counterFill.toFixed(2)} of the view (max ${MAX_FILL})`)
+        if (desc && counter && counter.y0 < desc.y1) problems.push(`${c.so}: counter not above the description`)
 
         // ── Nothing in the way of a pinch on the buttons ──
-        const hand = b.eye.add(b.right.uniformScale(20)).add(b.up.uniformScale(-35)).add(b.fwd.uniformScale(25))
-        for (const btn of flip ? ["FlipButton", "CloseButton"] : ["CloseButton"]) {
-          const target = ui.world(btn)
-          for (const [label, origin] of [["eye", b.eye], ["right hand", hand]] as [string, vec3][]) {
-            const end = origin.add(target.sub(origin).normalize().uniformScale(target.sub(origin).length + 30))
-            const hit = await this.cast(probe, origin, end)
-            if (hit !== btn) problems.push(`${c.so}: ray from the ${label} to ${btn} hits ${hit || "nothing"} first`)
-          }
-        }
+        problems.push(...(await ui.buttonRayProblems(probe, b, c.so)))
 
         // ── Flip: turned over where it lies, without sinking into what it rests on ──
         // What it rests on, from the brief: the memo on the desk and the glass on the chair seat (below them),
@@ -175,85 +162,11 @@ export class InspectFitScenario extends Scenario {
         await sleep(400)
         if (ui.main.foundCount !== counted + 1) problems.push(`${c.so} did not count (${counted} -> ${ui.main.foundCount})`)
         if (ui.quatAngleDeg(pivotT.getLocalRotation(), restPivot) > 1) problems.push(`${c.so} not face up again after Close`)
+        if (ui.hud.isPinned) problems.push(`${c.so}: counter still standing where the description was after Close`)
       }
     } finally {
-      hold = null
-      unsubscribe()
+      ui.releaseHead()
     }
     expect(problems.length, `inspect fit problems: ${problems.join("; ")}`).toBe(0)
-  }
-
-  private basis(ui: CaseRoomLeafInteractor): Basis {
-    const t = ui.cam.getTransform()
-    return {eye: t.getWorldPosition(), fwd: t.back, right: t.right, up: t.up}
-  }
-
-  /** Largest |normalized screen coordinate| over the points (1 = on the view edge; > 1 = outside). */
-  private fill(pts: vec3[], b: Basis, tanH: number, tanV: number): number {
-    let m = 0
-    for (const p of pts) {
-      const v = p.sub(b.eye)
-      const z = v.dot(b.fwd)
-      if (z <= 1e-3) return 99
-      m = Math.max(m, Math.abs(v.dot(b.right) / (z * tanH)), Math.abs(v.dot(b.up) / (z * tanV)))
-    }
-    return m
-  }
-
-  /** Name of the nearest *Button ancestor of the first collider hit, "other:<name>" for any other collider, "" for none. */
-  private async cast(probe: Probe, start: vec3, end: vec3): Promise<string> {
-    let result: string | null = null
-    probe.rayCast(start, end, (hit) => {
-      if (!hit) {
-        result = ""
-        return
-      }
-      let o = hit.collider.getSceneObject()
-      while (o && !o.name.endsWith("Button")) o = o.getParent()
-      result = o ? o.name : `other:${hit.collider.getSceneObject().name}`
-    })
-    for (let i = 0; i < 30 && result === null; i++) await nextFrame()
-    if (result === null) throw new Error("ray cast never returned")
-    return result
-  }
-
-  /**
-   * Corners of everything drawn for the description and its buttons. UIKit plates and buttons are drawn
-   * by a shader on a placeholder mesh, so their AABB is not what you see (a plate's box measured 1.00 of
-   * the view where the screenshot shows 0.77); they and text use the rectangle the layout gives them.
-   */
-  private groupCorners(ui: CaseRoomLeafInteractor, names: string[]): vec3[] {
-    const out: vec3[] = []
-    const rect = (o: SceneObject, w: number, h: number, cx: number = 0, cy: number = 0) => {
-      const m = o.getTransform().getWorldTransform()
-      for (const x of [cx - w / 2, cx + w / 2])
-        for (const y of [cy - h / 2, cy + h / 2]) {
-          out.push(m.multiplyPoint(new vec3(x, y, 0)))
-          names.push(o.name)
-        }
-    }
-    const visit = (o: SceneObject) => {
-      if (!o.isEnabledInHierarchy) return
-      const plate = o.getComponent(BackPlate.getTypeName()) as BackPlate
-      const button = o.getComponent(Button.getTypeName()) as Button
-      if (plate) rect(o, plate.size.x, plate.size.y)
-      else if (button) rect(o, button.size.x, button.size.y)
-      for (const t of o.getComponents("Component.Text") as Text[]) {
-        if (t.text === "") continue // empty line: draws nothing
-        const r = t.layoutRect
-        rect(o, r.right - r.left, r.top - r.bottom, (r.left + r.right) / 2, (r.top + r.bottom) / 2)
-      }
-      for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
-    }
-    visit(ui.so("InspectInfo"))
-    visit(ui.so("InspectFlipButtons"))
-    visit(ui.so("InspectCloseButtons"))
-    return out
-  }
-
-  private centroid(pts: vec3[]): vec3 {
-    let sum = vec3.zero()
-    for (const p of pts) sum = sum.add(p)
-    return sum.uniformScale(1 / Math.max(1, pts.length))
   }
 }

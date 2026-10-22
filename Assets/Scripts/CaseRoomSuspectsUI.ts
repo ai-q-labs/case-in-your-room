@@ -9,7 +9,7 @@ import {addButton, addText, makePanel, Panel, roleEmCm, VisibilityGate} from "./
  *
  * Lives under SuspectLineup (local +Z faces the player); suspect i stands at x = (i - 1) * spacing.
  * Passive view: main says which suspect is selected; the button emits onAccuse.
- * Exposes: setVisible, select(index), clearSelection, alibiText, selectedIndex.
+ * Exposes: setVisible, select(index), clearSelection, alibiText, selectedIndex, localExtentCm.
  */
 @component
 export class CaseRoomSuspectsUI extends BaseScriptComponent {
@@ -43,6 +43,7 @@ export class CaseRoomSuspectsUI extends BaseScriptComponent {
   @ui.group_end
 
   private labelGates: VisibilityGate[] = []
+  private labels: Panel[] = []
   private bubbleGate: VisibilityGate
   private buttonGate: VisibilityGate
   private bubble: Panel
@@ -81,6 +82,7 @@ export class CaseRoomSuspectsUI extends BaseScriptComponent {
         color: new vec4(0.8, 0.92, 1.0, 1),
       })
       this.labelGates.push(new VisibilityGate(this, p.root, false))
+      this.labels.push(p)
     })
 
     this.bubble = makePanel(this.sceneObject, "AlibiBubble", this.bubbleWidthCm, {padCm: 1.6, gapCm: 0, position: new vec3(0, 44, 4)})
@@ -97,6 +99,33 @@ export class CaseRoomSuspectsUI extends BaseScriptComponent {
     return (i - 1) * this.spacingCm
   }
 
+  private bubbleEdge(): number {
+    // The bubble's centre is pulled in so it never extends past the outer figures (see select).
+    return this.spacingCm + 15 - this.bubbleWidthCm / 2
+  }
+
+  /**
+   * The box (cm, in the line-up's own frame: x right, y up, z toward the player) covered by the name
+   * labels and by every place the alibi bubble and the Accuse button can take. Uses the laid-out plate
+   * sizes (the panels lay out at the start, before they are first hidden).
+   */
+  localExtentCm(): {min: vec3; max: vec3} {
+    // A vec3 cannot hold Infinity (it reads back as 0), so start from a large finite size.
+    let min = new vec3(1e9, 1e9, 1e9)
+    let max = new vec3(-1e9, -1e9, -1e9)
+    const add = (p: Panel, xs: number[], y: number, z: number) => {
+      const size = p.plate ? p.plate.size : new vec2(0, 0)
+      for (const x of xs) {
+        min = new vec3(Math.min(min.x, x - size.x / 2), Math.min(min.y, y - size.y / 2), Math.min(min.z, z))
+        max = new vec3(Math.max(max.x, x + size.x / 2), Math.max(max.y, y + size.y / 2), Math.max(max.z, z))
+      }
+    }
+    this.labels.forEach((p, i) => add(p, [this.xFor(i)], -this.labelDropCm, 2))
+    add(this.bubble, [-this.bubbleEdge(), this.bubbleEdge()], 44, 4)
+    add(this.accusePanel, [this.xFor(0), this.xFor(2)], -this.labelDropCm - 14, 3)
+    return {min, max}
+  }
+
   setVisible(visible: boolean): void {
     for (const g of this.labelGates) g.set(visible)
     if (!visible) this.clearSelection()
@@ -108,7 +137,7 @@ export class CaseRoomSuspectsUI extends BaseScriptComponent {
     const x = this.xFor(index)
     this.alibi.text = SUSPECTS[index].alibi
     // Above the selected suspect, but pulled in so the bubble never extends past the outer figures.
-    const edge = this.spacingCm + 15 - this.bubbleWidthCm / 2
+    const edge = this.bubbleEdge()
     const bx = Math.max(-edge, Math.min(edge, x))
     this.bubble.root.getTransform().setLocalPosition(new vec3(bx, 44, 4))
     this.accusePanel.root.getTransform().setLocalPosition(new vec3(x, -this.labelDropCm - 14, 3))

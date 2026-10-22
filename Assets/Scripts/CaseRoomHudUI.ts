@@ -1,12 +1,15 @@
 import WorldCameraFinderProvider from "SpectaclesInteractionKit.lspkg/Providers/CameraProvider/WorldCameraFinderProvider"
 import animate from "SpectaclesInteractionKit.lspkg/Utils/animate"
 import {FlexDirection} from "SpectaclesUIKit.lspkg/Scripts/Components/Layout2D/Flex/FlexTypes"
+import {CaseRoomLazyFollow} from "./CaseRoomLazyFollow"
 import {addIcon, addText, makePanel, Panel, roleEmCm, VisibilityGate} from "./CaseRoomSharedUI"
 
 const ICON_ARROW = requireAsset("../Icons/arrow_forward.png") as Texture // points right
 const ICON_ARROW_UP = requireAsset("../Icons/arrow_upward.png") as Texture
 const ICON_TURN_LEFT = requireAsset("../Icons/360.png") as Texture // ring arrow, near side heading left
 const ICON_TURN_RIGHT = requireAsset("../Icons/360_mirrored.png") as Texture
+
+const PAD_CM = 1.2
 
 /** Which way to turn: "turn-left" / "turn-right" = the clue is behind you, turn around that way. */
 export type TurnCue = "none" | "left" | "right" | "turn-left" | "turn-right"
@@ -20,8 +23,11 @@ export type TiltCue = "none" | "up" | "down"
  *
  * Passive view: main pushes the text, a pulse, and the world position the arrows should lead to.
  * Which arrows show is view logic, computed here each frame. The root is moved by a
- * CaseRoomLazyFollow on the same SceneObject (just below the line of sight, ~1 m away).
- * Exposes: setVisible, setText, pulse, setArrowTarget, turnCue, tiltCue. Must not: count clues.
+ * CaseRoomLazyFollow on the same SceneObject (just below the line of sight, ~1 m away), except while
+ * main has pinned it somewhere (pinAbove: the number alone, standing above an open description or
+ * above the suspects, so it never covers text the player is reading).
+ * Exposes: setVisible, setText, pulse, setArrowTarget, pinAbove, unpin, plateSizeFor, turnCue, tiltCue.
+ * Must not: count clues.
  */
 @component
 export class CaseRoomHudUI extends BaseScriptComponent {
@@ -71,6 +77,8 @@ export class CaseRoomHudUI extends BaseScriptComponent {
 
   private gate: VisibilityGate
   private panel: Panel
+  private follow: CaseRoomLazyFollow = null
+  private pinned = false
   private counter: Text
   private turnArrow: SceneObject
   private tiltArrow: SceneObject
@@ -105,12 +113,18 @@ export class CaseRoomHudUI extends BaseScriptComponent {
     return this.arrowTarget
   }
 
+  /** True while pinAbove() holds the counter in place (off the head follow). */
+  get isPinned(): boolean {
+    return this.pinned
+  }
+
   onAwake(): void {
     const d = this.viewDistanceCm
     this.em = roleEmCm("Headline1", d, this.textBoost / 1.4)
-    this.panel = makePanel(this.sceneObject, "CounterPanel", -1, {padCm: 1.2, gapCm: 0})
+    this.panel = makePanel(this.sceneObject, "CounterPanel", -1, {padCm: PAD_CM, gapCm: 0})
     this.buildRow()
     this.gate = new VisibilityGate(this, this.panel.root, false)
+    this.follow = this.sceneObject.getComponent(CaseRoomLazyFollow.getTypeName()) as CaseRoomLazyFollow
     this.createEvent("OnStartEvent").bind(() => {
       const cam = WorldCameraFinderProvider.getInstance().getComponent()
       this.camT = cam ? cam.getTransform() : null
@@ -187,6 +201,51 @@ export class CaseRoomHudUI extends BaseScriptComponent {
         this.counter.textFill.color = base
       },
     })
+  }
+
+  /**
+   * Plate size (cm, at the normal 1 m look) for `text` alone, without the arrows: what pinAbove() stands.
+   * Worked out from the type scale, not from the layout, so it is right before the panel lays out again.
+   */
+  plateSizeFor(text: string): vec2 {
+    return new vec2(this.textWidth(text) + 2 * PAD_CM, this.em * 1.4 + 2 * PAD_CM)
+  }
+
+  /**
+   * Take the counter off the head follow and stand it still: the plate's bottom edge centred on
+   * `bottomCenter`, facing along `rot`'s +Z, drawn `scale` times its normal size. The arrows are put
+   * away together with their slots, so the plate hugs the number. unpin() hands it back to the follow.
+   */
+  pinAbove(bottomCenter: vec3, rot: quat, scale: number): void {
+    if (!this.counter) return
+    this.pinned = true
+    if (this.follow) this.follow.paused = true
+    this.setArrowSlots(false)
+    const h = this.plateSizeFor(this.counter.text).y
+    const t = this.sceneObject.getTransform()
+    t.setWorldRotation(rot)
+    t.setWorldScale(vec3.one().uniformScale(scale))
+    t.setWorldPosition(bottomCenter.add(rot.multiplyVec3(vec3.up()).uniformScale((h * scale) / 2)))
+  }
+
+  /** Back under the line of sight, at once (a glide from where it stood would sweep across the view). */
+  unpin(): void {
+    if (!this.pinned) return
+    this.pinned = false
+    this.sceneObject.getTransform().setWorldScale(vec3.one())
+    this.setArrowSlots(true)
+    if (this.follow) {
+      this.follow.paused = false
+      this.follow.snap()
+    }
+  }
+
+  /** Turning an arrow's SceneObject off drops it from the row once the layout looks for its children again. */
+  private setArrowSlots(on: boolean): void {
+    this.turnArrow.enabled = on
+    this.tiltArrow.enabled = on
+    this.panel.flex.refreshChildren()
+    this.panel.flex.markDirty()
   }
 
   /** World position for the arrows to lead to, or null to hide both arrows. */

@@ -15,6 +15,7 @@ import {
   shoeOutline,
   solidMaterial,
 } from "./CaseRoomMeshes"
+import {SolidBox} from "./CaseRoomSightline"
 
 type GlowMode = "off" | "faint" | "hover"
 
@@ -189,6 +190,24 @@ export class CaseRoomClue extends BaseScriptComponent {
         const lo = v.worldAabbMin()
         const hi = v.worldAabbMax()
         for (const x of [lo.x, hi.x]) for (const y of [lo.y, hi.y]) for (const z of [lo.z, hi.z]) out.push(new vec3(x, y, z))
+      }
+      for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
+    }
+    visit(this.pivot)
+    return out
+  }
+
+  /** The clue's visible parts as solid boxes (one world-aligned box per mesh), for what may stand in front of it. */
+  worldBoxes(): SolidBox[] {
+    const out: SolidBox[] = []
+    const axes = [vec3.right(), vec3.up(), vec3.forward()]
+    const visit = (o: SceneObject) => {
+      if (o.name === "Glow" || !o.isEnabledInHierarchy) return
+      const v = o.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      if (v) {
+        const lo = v.worldAabbMin()
+        const hi = v.worldAabbMax()
+        out.push({center: lo.add(hi).uniformScale(0.5), axes, half: hi.sub(lo).uniformScale(0.5)})
       }
       for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
     }

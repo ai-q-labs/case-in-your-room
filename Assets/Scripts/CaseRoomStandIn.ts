@@ -1,4 +1,5 @@
 import {addVisual, faceTowardYaw, MeshKit, solidMaterial} from "./CaseRoomMeshes"
+import {SolidBox} from "./CaseRoomSightline"
 
 /**
  * CaseRoomStandIn — preview stand-in furniture (desk, chair, wall section) built with MeshBuilder.
@@ -7,6 +8,7 @@ import {addVisual, faceTowardYaw, MeshKit, solidMaterial} from "./CaseRoomMeshes
  * (top at 75 cm), chair (seat at 45 cm) and a wall section for the clock. Each stand-in is an
  * authored SceneObject under CrimeScene; its position is the design decision, this script only
  * builds the geometry under it (hidden until the main script calls setVisible(true)).
+ * Exposes: setVisible, worldBoxes (the solid boxes it is drawn from, for what may stand in front of it).
  * Must not: hold game state, create colliders.
  */
 @component
@@ -45,6 +47,8 @@ export class CaseRoomStandIn extends BaseScriptComponent {
   @ui.group_end
 
   private visualRoot: SceneObject
+  /** The boxes the stand-in is drawn from, in its own frame: centre and half sizes (cm). */
+  private boxes: {c: vec3; h: vec3}[] = []
 
   onAwake(): void {
     if (this.faceRoomCenter) {
@@ -53,31 +57,45 @@ export class CaseRoomStandIn extends BaseScriptComponent {
     }
     this.visualRoot = global.scene.createSceneObject("StandInVisual")
     this.visualRoot.setParent(this.sceneObject)
-    const kit = new MeshKit()
+    const box = (cx: number, cy: number, cz: number, hx: number, hy: number, hz: number) =>
+      this.boxes.push({c: new vec3(cx, cy, cz), h: new vec3(hx, hy, hz)})
     const w = this.widthCm, d = this.depthCm, h = this.heightCm
     if (this.kind === "Wall") {
-      kit.box(0, h / 2, 0, w / 2, h / 2, d / 2)
+      box(0, h / 2, 0, w / 2, h / 2, d / 2)
     } else {
       const slab = 3
-      kit.box(0, h - slab / 2, 0, w / 2, slab / 2, d / 2)
+      box(0, h - slab / 2, 0, w / 2, slab / 2, d / 2)
       const leg = 4
       const lx = w / 2 - leg, lz = d / 2 - leg
       const legH = h - slab
       for (const sx of [-1, 1]) {
         for (const sz of [-1, 1]) {
-          kit.box(sx * lx, legH / 2, sz * lz, leg / 2, legH / 2, leg / 2)
+          box(sx * lx, legH / 2, sz * lz, leg / 2, legH / 2, leg / 2)
         }
       }
       if (this.kind === "Chair") {
         // Backrest on the far side (away from the room center).
-        kit.box(0, h + 22, -d / 2 + 1.5, w / 2, 22, 1.5)
+        box(0, h + 22, -d / 2 + 1.5, w / 2, 22, 1.5)
       }
     }
+    const kit = new MeshKit()
+    for (const b of this.boxes) kit.box(b.c.x, b.c.y, b.c.z, b.h.x, b.h.y, b.h.z)
     addVisual(this.visualRoot, "Mesh", kit.build(), solidMaterial(this.color))
     this.visualRoot.enabled = false
   }
 
   setVisible(visible: boolean): void {
     if (this.visualRoot) this.visualRoot.enabled = visible
+  }
+
+  /** The solid boxes the stand-in is drawn from, in world space (empty while it is hidden). */
+  worldBoxes(): SolidBox[] {
+    if (!this.visualRoot || !this.visualRoot.isEnabledInHierarchy) return []
+    const t = this.visualRoot.getTransform()
+    const m = t.getWorldTransform()
+    const r = t.getWorldRotation()
+    const axes = [r.multiplyVec3(vec3.right()), r.multiplyVec3(vec3.up()), r.multiplyVec3(vec3.forward())]
+    const s = t.getWorldScale()
+    return this.boxes.map((b) => ({center: m.multiplyPoint(b.c), axes, half: new vec3(b.h.x * s.x, b.h.y * s.y, b.h.z * s.z)}))
   }
 }

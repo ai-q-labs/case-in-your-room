@@ -129,4 +129,11 @@ export class CaseRoomSuspect extends BaseScriptComponent {
   get isSelected(): boolean {
     return this.selected
   }
+
+  /** The box the figure and its outline are drawn in, in this wrapper's frame (cm; bust 70 cm tall, centred). */
+  localBoundsCm(): {min: vec3; max: vec3} {
+    const k = 1.08 // the outline: 8% bigger, 2.8 cm lower, 1 cm back (see onAwake)
+    const half = (this.figureWidthCm * k) / 2
+    return {min: new vec3(-half, -35 * k - 2.8, -half - 1), max: new vec3(half, Math.max(35, 35 * k - 2.8), half)}
+  }
 }

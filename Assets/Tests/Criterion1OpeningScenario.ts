@@ -32,7 +32,15 @@ export class Criterion1OpeningScenario extends Scenario {
     ui.near("board horizontal distance (cm)", ui.horizontalDistance(board, ui.eye), 120, 3)
     ui.near("board height relative to the eyes (cm)", board.y - ui.eye.y, 0, 3)
     expect(ui.inView(board), "board centre in view").toBe(true)
+    // Where it shows for a player looking straight ahead, level: the board stands at eye height, so with
+    // the head tilted (the preview's camera can be left pitched) it shows above or below the centre.
+    const pitch = Math.asin(Math.max(-1, Math.min(1, ui.look.y))) * (180 / Math.PI)
+    ui.holdHead(ui.lookRot(ui.flatLook))
+    await nextFrame()
+    await nextFrame()
     const bs = ui.screen(board)
+    ui.releaseHead()
+    ui.log(`preview head pitch ${pitch.toFixed(1)} deg; board measured with the head level`)
     ui.near("board centre screen x", bs.x, 0.5, 0.03)
     ui.near("board centre screen y", bs.y, 0.5, 0.05)
     const boardZ = ui.so("OpeningBoardUI").getTransform().getWorldRotation().multiplyVec3(new vec3(0, 0, 1))

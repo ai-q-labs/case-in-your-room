@@ -8,7 +8,8 @@ import {BRIEF, CaseRoomLeafInteractor, CLUES, counter, SUSPECTS} from "./CaseRoo
  * Walking in the direction of the arrow to find the remaining clues and inspecting and putting back
  * all of them changes the counter from "5 / 5" to "The suspects have appeared". The 3 suspects line
  * up straight ahead, and the counter and arrow disappear.
- * Approved deviation: suspect spacing 40 cm (brief: about 45 cm).
+ * Approved deviations: suspect spacing 40 cm (brief: about 45 cm); the line-up stands at least 2 m away,
+ * farther when that is what fits all of it in the view (checked by lineup_fit).
  */
 @component
 export class Criterion3SuspectsScenario extends Scenario {
@@ -59,7 +60,8 @@ export class Criterion3SuspectsScenario extends Scenario {
     expect(ui.phase, "phase").toBe("suspects")
     const lineup = ui.world("SuspectLineup")
     ui.between("line-up bearing from the view direction (deg)", ui.bearingDeg(lineup), 0, 2)
-    ui.near("line-up horizontal distance (cm; brief about 2 m)", ui.horizontalDistance(lineup, ui.eye), 200, 3)
+    // Brief: about 2 m. Built: at least 2 m, farther when that is what fits the whole line-up in the view (lineup_fit).
+    ui.between("line-up horizontal distance (cm)", ui.horizontalDistance(lineup, ui.eye), 197, 280)
     ui.near("line-up height relative to the eyes (cm; brief: eye height)", lineup.y - ui.eye.y, 0, 3)
     const lineupZ = ui.so("SuspectLineup").getTransform().getWorldRotation().multiplyVec3(new vec3(0, 0, 1))
     const toEye = ui.eye.sub(lineup)
