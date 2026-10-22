@@ -6,6 +6,7 @@ import {Criterion1OpeningScenario} from "./Criterion1OpeningScenario"
 import {Criterion2MemoScenario} from "./Criterion2MemoScenario"
 import {Criterion3SuspectsScenario} from "./Criterion3SuspectsScenario"
 import {Criterion4WrongAccuseScenario} from "./Criterion4WrongAccuseScenario"
+import {Criterion5RightAccuseScenario} from "./Criterion5RightAccuseScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -35,6 +36,10 @@ export class LeafIndex extends BaseScriptComponent {
     {
       id: "criterion_4",
       typename: Criterion4WrongAccuseScenario.getTypeName(),
+    },
+    {
+      id: "criterion_5",
+      typename: Criterion5RightAccuseScenario.getTypeName(),
     },
   ]
 }
