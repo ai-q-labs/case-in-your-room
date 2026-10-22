@@ -212,10 +212,18 @@ export class CaseRoomClue extends BaseScriptComponent {
    * Move the clue (wrapper) to a world pose, standing upright and facing along `worldRot`'s +Z,
    * scaled so its largest side is `maxSizeCm` (never more than `maxScale`).
    */
-  moveTo(worldPos: vec3, worldRot: quat, maxSizeCm: number, maxScale: number, duration: number, done?: () => void): void {
+  moveTo(
+    worldPos: vec3,
+    worldRot: quat,
+    maxSizeCm: number,
+    maxScale: number,
+    duration: number,
+    done?: () => void,
+    around?: vec3,
+  ): void {
     const scale = Math.min(maxScale, maxSizeCm / Math.max(1, this.maxDimensionCm))
     this.flipped = false
-    this.tweenTo(worldPos, worldRot, quat.quatIdentity(), scale, duration, done)
+    this.tweenTo(worldPos, worldRot, quat.quatIdentity(), scale, duration, done, around)
   }
 
   /** Fly back to its place in the room. */
@@ -255,20 +263,34 @@ export class CaseRoomClue extends BaseScriptComponent {
 
   // ── Internals ────────────────────────────────────────────────────────────────
 
-  private tweenTo(pos: vec3, rot: quat, pivotRot: quat, pivotScale: number, duration: number, done?: () => void): void {
+  /**
+   * Tween the wrapper to a world pose. With `around` (the eye), the path swings around that point at an
+   * even angular pace (direction slerped, distance lerped, ease-in-out-sine) so the eye can follow it;
+   * without it, a straight ease-in-out-cubic move.
+   */
+  private tweenTo(
+    pos: vec3,
+    rot: quat,
+    pivotRot: quat,
+    pivotScale: number,
+    duration: number,
+    done?: () => void,
+    around?: vec3,
+  ): void {
     const t = this.sceneObject.getTransform()
     const pt = this.pivot.getTransform()
     const p0 = t.getWorldPosition()
     const r0 = t.getWorldRotation()
     const pr0 = pt.getLocalRotation()
     const s0 = pt.getLocalScale().x
+    const path = around ? this.orbitPath(around, p0, pos) : (k: number) => vec3.lerp(p0, pos, k)
     if (this.cancelMove) this.cancelMove()
     if (this.cancelFlip) this.cancelFlip()
     this.cancelMove = animate({
       duration,
-      easing: "ease-in-out-cubic",
+      easing: around ? "ease-in-out-sine" : "ease-in-out-cubic",
       update: (k: number) => {
-        t.setWorldPosition(vec3.lerp(p0, pos, k))
+        t.setWorldPosition(path(k))
         t.setWorldRotation(quat.slerp(r0, rot, k))
         pt.setLocalRotation(quat.slerp(pr0, pivotRot, k))
         pt.setLocalScale(vec3.one().uniformScale(s0 + (pivotScale - s0) * k))
@@ -278,6 +300,19 @@ export class CaseRoomClue extends BaseScriptComponent {
         if (done) done()
       },
     })
+  }
+
+  /** Point on a path from `from` to `to` that turns around `center` at a constant rate (k = 0..1). */
+  private orbitPath(center: vec3, from: vec3, to: vec3): (k: number) => vec3 {
+    const a = from.sub(center)
+    const b = to.sub(center)
+    const da = a.length
+    const db = b.length
+    if (da < 1e-3 || db < 1e-3) return (k: number) => vec3.lerp(from, to, k)
+    const ua = a.uniformScale(1 / da)
+    const turn = quat.rotationFromTo(ua, b.uniformScale(1 / db))
+    const none = quat.quatIdentity()
+    return (k: number) => center.add(quat.slerp(none, turn, k).multiplyVec3(ua).uniformScale(da + (db - da) * k))
   }
 
   private updateGlow(): void {

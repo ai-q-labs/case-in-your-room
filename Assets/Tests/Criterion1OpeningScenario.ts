@@ -1,6 +1,7 @@
 import {Scenario} from "Leaf.lspkg/Scenarios/scenario/Scenario"
 import {expect} from "Leaf.lspkg/Utils/common/Expect"
 import {nextFrame, sleep} from "Leaf.lspkg/Utils/common/Utils"
+import {CaseRoomOpeningBoardUI} from "../Scripts/CaseRoomOpeningBoardUI"
 import {BRIEF, CaseRoomLeafInteractor, CLUES, counter} from "./CaseRoomLeafInteractor"
 
 /**
@@ -43,8 +44,16 @@ export class Criterion1OpeningScenario extends Scenario {
     ui.log(`board ok: bearing=${ui.bearingDeg(board).toFixed(2)} dist=${ui.horizontalDistance(board, ui.eye).toFixed(1)} screen=(${bs.x.toFixed(3)},${bs.y.toFixed(3)})`)
 
     // ── Press Start; watch the board fade and the clues light up ──
+    // Time from the press itself: the scripted tap returns a few frames after Start fires (0.13-0.22 s
+    // measured), which made the 0.5 s fade read as 0.28-0.37 s.
+    const boardUI = ui.so("OpeningBoardUI").getComponent(CaseRoomOpeningBoardUI.getTypeName()) as CaseRoomOpeningBoardUI
+    let pressedAt = -1
+    boardUI.onStart.add(() => {
+      if (pressedAt < 0) pressedAt = getTime()
+    })
     await ui.tap("StartButton")
-    const t0 = getTime()
+    expect(pressedAt >= 0, "Start fired").toBe(true)
+    const t0 = pressedAt
     const revealAt: number[] = CLUES.map(() => -1)
     const glowPeak: number[] = CLUES.map(() => 0)
     // Brief: "the 5 clues light up one at a time, each with a small sound". The sound itself can't be

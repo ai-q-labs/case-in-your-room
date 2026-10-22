@@ -5,9 +5,9 @@
     - !<own> 0005641c-028d-459a-0000-000000014b4d
     - !<own> f5d74682-203a-4970-81ea-9fa7b88c96bb
     - !<own> c45550d1-bdfb-4b6b-8602-6290007e31f2
-    - !<own> ef01706d-b25e-449a-92a4-948b5444074a
     - !<own> f3f065b3-3a70-445f-8875-e961f04eae21
     - !<own> 3587bd11-28ef-4401-b01f-1ef7e9262c4c
+    - !<own> 09940b1b-fdd3-401d-9cde-258f333f09a1
   layers: !<Layers/267ee9a7-aff2-4f9d-9a49-f71214747d03>
     userLayers:
       - id: 1
@@ -375,6 +375,21 @@
   ScriptTypes:
     "":
       {}
+- !<SceneObject/09940b1b-fdd3-401d-9cde-258f333f09a1>
+  PrefabRemaps:
+    []
+  Name: AiPreviewAgent Handler
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 63a24994-a1fd-4a8e-8f63-70e8a7748331
 - !<SceneObject/0a0e1d78-8246-4f5b-ab1a-fdc51837956d>
   PrefabRemaps:
     []
@@ -1321,6 +1336,22 @@
   ScriptTypes:
     "":
       {}
+- !<ScriptComponent/63a24994-a1fd-4a8e-8f63-70e8a7748331>
+  PrefabRemaps:
+    []
+  Name: AgentInspectScript
+  Enabled: true
+  ScriptAsset: !<reference> 0b25079c-f5bf-4c6d-96c4-f43b89dfa213
+  ScriptInputsDefault:
+    {}
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      {}
+  ScriptTypes:
+    "":
+      {}
 - !<ScriptComponent/64f27597-c99d-4c59-8a08-05459cc2258d>
   PrefabRemaps:
     []
@@ -1893,6 +1924,8 @@
     eyeHeightCm: true
     boardDistanceCm: true
     inspectDistanceCm: true
+    inspectViewFill: true
+    inspectRiseDegPerSec: true
     lineupDistanceCm: true
     debugLog: true
   ScriptTypesDefault:
@@ -1928,8 +1961,11 @@
       eyeHeightCm: !<float> 160.000000
       boardDistanceCm: !<float> 120.000000
       inspectDistanceCm: !<float> 50.000000
-      inspectDropCm: !<float> 3.000000
+      inspectDropCm: !<float> 6.000000
       inspectMaxSizeCm: !<float> 11.000000
+      inspectMaxDistanceCm: !<float> 50.000000
+      inspectViewFill: 0.850000
+      inspectRiseDegPerSec: !<float> 30.000000
       lineupDistanceCm: !<float> 200.000000
       debugLog: true
   ScriptTypes:
@@ -2070,22 +2106,6 @@
   Components:
     - !<own> e2b1e367-278e-43fa-b498-941c2374ffb1
     - !<own> ee28891e-3a86-4ac1-9ef9-15dba6cb9b3c
-- !<ScriptComponent/985ced2d-d664-4093-85f5-8e66eba82052>
-  PrefabRemaps:
-    []
-  Name: AgentInspectScript
-  Enabled: true
-  ScriptAsset: !<reference> 0b25079c-f5bf-4c6d-96c4-f43b89dfa213
-  ScriptInputsDefault:
-    {}
-  ScriptTypesDefault:
-    {}
-  ScriptInputs:
-    "":
-      {}
-  ScriptTypes:
-    "":
-      {}
 - !<SceneObject/988c408a-99dc-47e6-b7c4-efbf4bf8dc3c>
   PrefabRemaps:
     []
@@ -3311,21 +3331,6 @@
   ScriptTypes:
     "":
       {}
-- !<SceneObject/ef01706d-b25e-449a-92a4-948b5444074a>
-  PrefabRemaps:
-    []
-  Name: AiPreviewAgent Handler
-  Enabled: true
-  Layers: 1
-  LocalTransform: !<TransformEntity>
-    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
-    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
-    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
-    HasSegmentScaleCompensation: false
-  Children:
-    []
-  Components:
-    - !<own> 985ced2d-d664-4093-85f5-8e66eba82052
 - !<SceneObject/f0394c5d-4c44-4c65-a77c-e1c7e05ca905>
   PrefabRemaps:
     []

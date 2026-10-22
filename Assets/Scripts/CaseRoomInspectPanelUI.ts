@@ -43,6 +43,9 @@ export class CaseRoomInspectPanelUI extends BaseScriptComponent {
   private nameText: Text
   private descText: Text
   private backLine: Text
+  // Laid-out panel sizes in cm (UIKit reports them on its first layout; these are close first guesses).
+  private infoSize = new vec2(22, 10)
+  private buttonsSize = new vec2(10.6, 11.2)
   private _onFlip = new Event<void>()
   private _onPutBack = new Event<void>()
 
@@ -85,14 +88,29 @@ export class CaseRoomInspectPanelUI extends BaseScriptComponent {
     addButton(this.buttons.content, "FlipButton", TEXT.flip, 9, 4, d, b, () => this._onFlip.invoke())
     addButton(this.buttons.content, "PutBackButton", TEXT.putBack, 9, 4, d, b, () => this._onPutBack.invoke())
 
+    this.info.flex.onLayoutComplete.add((r) => (this.infoSize = new vec2(r.containerWidth, r.containerHeight)))
+    this.buttons.flex.onLayoutComplete.add((r) => (this.buttonsSize = new vec2(r.containerWidth, r.containerHeight)))
+
     this.infoGate = new VisibilityGate(this, this.info.root, false)
     this.buttonsGate = new VisibilityGate(this, this.buttons.root, false)
   }
 
   /** Place the info panel below and the buttons beside a held clue of the given size (cm). */
   layoutFor(widthCm: number, heightCm: number): void {
-    this.info.root.getTransform().setLocalPosition(new vec3(0, -(heightCm / 2 + this.gapCm + 3.1), 0.5))
-    this.buttons.root.getTransform().setLocalPosition(new vec3(widthCm / 2 + this.gapCm + 5.3, 0, 0.5))
+    this.info.root.getTransform().setLocalPosition(new vec3(0, -(heightCm / 2 + this.gapCm + this.infoSize.y / 2), 0.5))
+    this.buttons.root.getTransform().setLocalPosition(new vec3(widthCm / 2 + this.gapCm + this.buttonsSize.x / 2, 0, 0.5))
+  }
+
+  /**
+   * The rectangle (cm, in this root's XY plane, origin at the clue's center) covered by a held clue of
+   * the given size plus the info panel and buttons that layoutFor() places around it.
+   */
+  groupRect(widthCm: number, heightCm: number): {min: vec2; max: vec2} {
+    const right = Math.max(widthCm / 2 + this.gapCm + this.buttonsSize.x, this.infoSize.x / 2)
+    const left = -Math.max(widthCm / 2, this.infoSize.x / 2)
+    const top = Math.max(heightCm / 2, this.buttonsSize.y / 2)
+    const bottom = -(heightCm / 2 + this.gapCm + this.infoSize.y)
+    return {min: new vec2(left, bottom), max: new vec2(right, top)}
   }
 
   show(name: string, description: string): void {

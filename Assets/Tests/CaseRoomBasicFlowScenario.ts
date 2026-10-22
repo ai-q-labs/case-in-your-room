@@ -45,7 +45,8 @@ export class CaseRoomBasicFlowScenario extends Scenario {
     for (let i = 0; i < clues.length; i++) {
       const [name, back] = clues[i]
       await this.tap(name)
-      await sleep(900)
+      // The clue comes to the hands at a followable pace (up to 2.2 s for the lowest clues).
+      for (let waited = 0; waited < 3500 && !this.isShown("InspectInfo"); waited += 100) await sleep(100)
       expect(this.isShown("InspectInfo")).toBe(true)
       expect(this.isShown("FlipButton")).toBe(true)
       expect(this.text("InspectDescriptionText").length).toBeGreaterThan(5)

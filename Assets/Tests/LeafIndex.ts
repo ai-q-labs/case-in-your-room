@@ -9,6 +9,9 @@ import {Criterion4WrongAccuseScenario} from "./Criterion4WrongAccuseScenario"
 import {Criterion5RightAccuseScenario} from "./Criterion5RightAccuseScenario"
 import {IkInspectReachScenario} from "./IkInspectReachScenario"
 import {SuspectHitboxScenario} from "./SuspectHitboxScenario"
+import {StartLayoutScenario} from "./StartLayoutScenario"
+import {InspectFitScenario} from "./InspectFitScenario"
+import {InspectHoldScenario} from "./InspectHoldScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -52,6 +55,20 @@ export class LeafIndex extends BaseScriptComponent {
     {
       id: "suspect_hitbox",
       typename: SuspectHitboxScenario.getTypeName(),
+    },
+    {
+      id: "start_layout",
+      typename: StartLayoutScenario.getTypeName(),
+    },
+    {
+      id: "inspect_fit",
+      typename: InspectFitScenario.getTypeName(),
+    },
+    {
+      id: "inspect_hold",
+      typename: InspectHoldScenario.getTypeName(),
+      // Visual-check helper, not a pass/fail test: opens one clue and keeps it open for a capture.
+      parameters: {clue: "Clue_Footprints", hold_secs: "90"},
     },
   ]
 }

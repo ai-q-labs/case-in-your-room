@@ -89,6 +89,7 @@ export class CaseRoomReplay extends BaseScriptComponent {
   private footMesh: RenderMesh
   private threads: Thread[] = []
   private threadRoot: SceneObject
+  private guideRoot: SceneObject
   private trailRoot: SceneObject
   private walker: SceneObject
   private walkerMat: Material
@@ -106,6 +107,7 @@ export class CaseRoomReplay extends BaseScriptComponent {
     this.boxMesh = new MeshKit().box(0, 0, 0.5, 0.5, 0.5, 0.5).build() // unit box from z=0 to z=1
     this.footMesh = new MeshKit().flatXY(shoeOutline(24, 9), 0.1, 0.2).build()
     this.threadRoot = this.child("Threads")
+    this.guideRoot = this.child("StartGuides")
     this.trailRoot = this.child("FootprintTrail")
     this.walker = this.child("CulpritFigure")
     this.walkerMat = glowMaterial(this.figureColor, 0)
@@ -272,6 +274,67 @@ export class CaseRoomReplay extends BaseScriptComponent {
       duration,
       easing: "ease-out-cubic",
       update: (k: number) => t.setLocalScale(new vec3(0.7, 0.7, Math.max(0.01, len * k))),
+    })
+  }
+
+  /**
+   * A light trail from `from` (in view at Start) round the player to a clue that just lit up, so the eye
+   * can find it. It spirals about the eye (radius going from |from| to the clue's), so it never crosses
+   * the player's head; it grows, holds, then fades and is destroyed. `eye` / `fwd` = eye and flat
+   * facing at Start.
+   */
+  guide(name: string, eye: vec3, fwd: vec3, from: vec3, to: vec3, holdSec: number = 2.0): void {
+    const right = new vec3(-fwd.z, 0, fwd.x)
+    const flatTo = new vec3(to.x - eye.x, 0, to.z - eye.z)
+    const bearing = Math.atan2(flatTo.dot(right), flatTo.dot(fwd))
+    const r0 = new vec3(from.x - eye.x, 0, from.z - eye.z).length
+    const r1 = flatTo.length
+    const n = Math.max(6, Math.ceil(Math.abs(bearing) / (10 * DEG)))
+    const pts: vec3[] = []
+    for (let i = 0; i <= n; i++) {
+      const s = i / n
+      const a = bearing * s
+      const rad = r0 + (r1 - r0) * s
+      const y = from.y + (to.y - from.y) * s * s * (3 - 2 * s)
+      pts.push(new vec3(eye.x, y, eye.z).add(fwd.uniformScale(Math.cos(a) * rad)).add(right.uniformScale(Math.sin(a) * rad)))
+    }
+
+    const root = global.scene.createSceneObject(name)
+    root.setParent(this.guideRoot)
+    const mat = glowMaterial(this.threadColor, 0.95)
+    const segs: {t: Transform; len: number}[] = []
+    for (let i = 0; i < n; i++) {
+      const so = global.scene.createSceneObject(`Seg${i}`)
+      so.setParent(root)
+      const rmv = so.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      rmv.mesh = this.boxMesh
+      rmv.mainMaterial = mat
+      const d = pts[i + 1].sub(pts[i])
+      const len = d.length
+      const dir = len > 1e-3 ? d.uniformScale(1 / len) : vec3.forward()
+      const t = so.getTransform()
+      t.setWorldPosition(pts[i])
+      t.setWorldRotation(quat.lookAt(dir, Math.abs(dir.y) > 0.95 ? vec3.forward() : vec3.up()))
+      t.setLocalScale(new vec3(0.6, 0.6, 0.01))
+      segs.push({t, len})
+    }
+    animate({
+      duration: 0.45 + (0.45 * Math.abs(bearing)) / Math.PI,
+      easing: "ease-out-cubic",
+      update: (k: number) =>
+        segs.forEach((s, i) => s.t.setLocalScale(new vec3(0.6, 0.6, Math.max(0.01, s.len * Math.max(0, Math.min(1, k * n - i)))))),
+      ended: () => {
+        const ev = this.createEvent("DelayedCallbackEvent")
+        ev.bind(() =>
+          animate({
+            duration: 0.8,
+            easing: "linear",
+            update: (k: number) => setGlow(mat, this.threadColor, 0.95 * (1 - k)),
+            ended: () => root.destroy(),
+          }),
+        )
+        ev.reset(holdSec)
+      },
     })
   }
 

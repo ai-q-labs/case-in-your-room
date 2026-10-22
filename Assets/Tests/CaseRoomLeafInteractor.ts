@@ -368,7 +368,7 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     await this.waitUntil(
       `${clueSo} held with description and buttons`,
       () => this.phase === "inspect" && this.isShown("InspectInfo") && this.isShown("FlipButton") && this.isShown("PutBackButton"),
-      3000,
+      4000, // the rise takes up to 2.2 s (followable pace)
     )
   }
 

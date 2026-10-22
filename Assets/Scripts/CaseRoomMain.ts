@@ -5,7 +5,7 @@ import {CaseRoomClueTagUI} from "./CaseRoomClueTagUI"
 import {ClueId, CLUES, counterText, REPLAY_ORDER, SUSPECTS, TEXT, TOTAL_CLUES, CULPRIT_INDEX} from "./CaseRoomData"
 import {CaseRoomHudUI} from "./CaseRoomHudUI"
 import {CaseRoomInspectPanelUI} from "./CaseRoomInspectPanelUI"
-import {faceTowardYaw, flatForward, yawQuat} from "./CaseRoomMeshes"
+import {DEG, faceTowardYaw, flatForward, yawQuat} from "./CaseRoomMeshes"
 import {CaseRoomOpeningBoardUI} from "./CaseRoomOpeningBoardUI"
 import {CaseRoomReplay, ReplayStop} from "./CaseRoomReplay"
 import {CaseRoomStandIn} from "./CaseRoomStandIn"
@@ -162,14 +162,29 @@ export class CaseRoomMain extends BaseScriptComponent {
   inspectDistanceCm: number = 50
 
   @input
-  @hint("How far below the eyes the inspected clue is held, in cm (kept small so the clue, its description and buttons all fit in the glasses' view at 50 cm)")
+  @hint("How far below the eyes the center of the inspected clue + description + buttons is held, in cm at inspectDistanceCm (6: the buttons stay within arm's reach - at 2 cm above the eyes the LEAF IK arm fell 0.6 cm short - and the whole group stays in view)")
   @widget(new SliderWidget(0, 50, 1))
-  inspectDropCm: number = 3
+  inspectDropCm: number = 6
 
   @input
   @hint("Largest size of an inspected clue in cm (2x, capped so it fits the view at 50 cm)")
   @widget(new SliderWidget(6, 40, 0.5))
   inspectMaxSizeCm: number = 11
+
+  @input
+  @hint("Farthest the inspected clue may be pushed back (cm) so the clue, description and buttons all fit the view; past this they shrink instead. Kept at 50: at 57 cm the LEAF IK arm could no longer press Flip directly")
+  @widget(new SliderWidget(40, 80, 1))
+  inspectMaxDistanceCm: number = 50
+
+  @input
+  @hint("Share of the view the inspected clue + description + buttons may fill, edge to edge (leaves a margin for stepping closer)")
+  @widget(new SliderWidget(0.5, 1, 0.01))
+  inspectViewFill: number = 0.85
+
+  @input
+  @hint("Average turn rate (deg/s) of an inspected clue on its way to the hands, as seen from the eye (slow enough to follow)")
+  @widget(new SliderWidget(10, 120, 1))
+  inspectRiseDegPerSec: number = 30
 
   @input
   @hint("Distance of the suspect line-up straight ahead, in cm")
@@ -192,6 +207,7 @@ export class CaseRoomMain extends BaseScriptComponent {
   private selected = -1
   private wrongCount = 0
   private camT: Transform = null
+  private cam: Camera = null
   private frames = 0
   private boardPlaced = false
   private chimes: AudioComponent[] = []
@@ -230,6 +246,7 @@ export class CaseRoomMain extends BaseScriptComponent {
 
   private onStart(): void {
     const cam = WorldCameraFinderProvider.getInstance().getComponent()
+    this.cam = cam
     this.camT = cam ? cam.getTransform() : null
     this.openingBoard.onStart.add(() => this.onStartPressed())
     for (const c of this.clues) {
@@ -291,11 +308,15 @@ export class CaseRoomMain extends BaseScriptComponent {
     for (const s of [this.standInDesk, this.standInChair, this.standInWall]) s.setVisible(true)
     for (const c of this.clues) c.captureRestPose()
 
+    // Nothing is in view at Start (the two front clues sit 45 degrees to the side and 34-47 degrees
+    // down), so each clue's light-up sends a light trail from in front of the player round to it.
+    const guideFrom = new vec3(eye.x, eye.y - 25, eye.z).add(fwd.uniformScale(100))
     this.clues.forEach((c, i) => {
       this.delay(0.4 + i * 0.45, () => {
         c.reveal()
         c.setInteractive(true)
         if (this.chimes[i]) this.chimes[i].play(1)
+        this.replay.guide(`StartGuide_${c.getSceneObject().name}`, eye, fwd, guideFrom, c.restPosition)
       })
     })
     this.caption.showCaption(TEXT.lookAround, 3)
@@ -324,26 +345,66 @@ export class CaseRoomMain extends BaseScriptComponent {
     this.clueTag.hideTag()
     this.hud.setVisible(false) // the held clue and its panels would overlap the counter
     for (const k of this.clues) k.setInteractive(false)
+    c.setGlowMode("off") // the halo is wider than the clue; in the hands it would only crowd the view
 
     const eye = this.camT.getWorldPosition()
-    const fwd = flatForward(this.camT)
-    const right = new vec3(-fwd.z, 0, fwd.x)
-    // Held ~50 cm ahead, a little below the eyes; shifted left so the buttons beside it stay in view.
-    const pos = eye
-      .add(fwd.uniformScale(this.inspectDistanceCm))
-      .sub(new vec3(0, this.inspectDropCm, 0))
-      .sub(right.uniformScale(3))
-    const rot = quat.lookAt(eye.sub(pos).normalize(), vec3.up())
     const scale = Math.min(2, this.inspectMaxSizeCm / Math.max(1, c.maxDimensionCm))
     const size = c.sizeCmUpright.uniformScale(scale)
-    c.moveTo(pos, rot, this.inspectMaxSizeCm, 2, 0.6, () => {
-      const t = this.inspectPanel.getSceneObject().getTransform()
-      t.setWorldPosition(pos)
-      t.setWorldRotation(rot)
-      this.inspectPanel.layoutFor(size.x, size.y)
-      this.inspectPanel.show(c.info.name, c.info.description)
-    })
-    this.log(`inspect ${c.info.id}`)
+    const hold = this.fitInspect(eye, size)
+    const from = c.getSceneObject().getTransform().getWorldPosition().sub(eye).normalize()
+    const turnDeg = Math.acos(Math.max(-1, Math.min(1, from.dot(hold.pos.sub(eye).normalize())))) / DEG
+    const duration = Math.max(0.6, Math.min(2.2, turnDeg / this.inspectRiseDegPerSec))
+    c.moveTo(
+      hold.pos,
+      hold.rot,
+      this.inspectMaxSizeCm * hold.k,
+      2 * hold.k,
+      duration,
+      () => {
+        const t = this.inspectPanel.getSceneObject().getTransform()
+        t.setWorldPosition(hold.pos)
+        t.setWorldRotation(hold.rot)
+        t.setWorldScale(vec3.one().uniformScale(hold.k))
+        this.inspectPanel.layoutFor(size.x, size.y)
+        this.inspectPanel.show(c.info.name, c.info.description)
+      },
+      eye,
+    )
+    this.log(`inspect ${c.info.id}: ${hold.dist.toFixed(1)} cm, scale ${hold.k.toFixed(2)}, rise ${duration.toFixed(2)} s`)
+  }
+
+  /**
+   * Where the inspected clue goes: in the direction the player faces, a little below eye level, at the
+   * nearest distance (inspectDistanceCm..inspectMaxDistanceCm) where the clue + description + buttons
+   * fill at most inspectViewFill of the camera's view, centered in it; shrunk (k < 1) if even the
+   * farthest distance is not enough. `pos`/`rot` are the clue's (and the inspect panel root's) pose.
+   */
+  private fitInspect(eye: vec3, clueSizeCm: vec3): {pos: vec3; rot: quat; k: number; dist: number} {
+    const fwd = flatForward(this.camT)
+    const pitch = -Math.atan2(this.inspectDropCm, this.inspectDistanceCm)
+    const dir = fwd.uniformScale(Math.cos(pitch)).add(new vec3(0, Math.sin(pitch), 0))
+    const rot = quat.lookAt(dir.uniformScale(-1), vec3.up())
+    const r = this.inspectPanel.groupRect(clueSizeCm.x, clueSizeCm.y)
+    const halfW = (r.max.x - r.min.x) / 2
+    const halfH = (r.max.y - r.min.y) / 2
+    const tanH = Math.tan(this.cam.fov / 2) * this.cam.aspect * this.inspectViewFill
+    // Vertically the group must also fit a level (resting) head, with its center `pitch` below eye level.
+    const tanV = Math.tan(Math.max(0.01, Math.atan(Math.tan(this.cam.fov / 2) * this.inspectViewFill) + pitch))
+    const need = Math.max(halfW / tanH, halfH / tanV)
+    const dist = Math.max(this.inspectDistanceCm, Math.min(this.inspectMaxDistanceCm, need))
+    const k = Math.min(1, (dist * tanH) / halfW, (dist * tanV) / halfH)
+    this.log(
+      `fit: clue ${clueSizeCm.x.toFixed(1)}x${clueSizeCm.y.toFixed(1)} cm, group x ${r.min.x.toFixed(1)}..${r.max.x.toFixed(1)} ` +
+        `y ${r.min.y.toFixed(1)}..${r.max.y.toFixed(1)} cm, needs ${need.toFixed(1)} cm`,
+    )
+    // Put the group's center (not the clue's) on the line of sight.
+    const cx = ((r.min.x + r.max.x) / 2) * k
+    const cy = ((r.min.y + r.max.y) / 2) * k
+    const pos = eye
+      .add(dir.uniformScale(dist))
+      .sub(rot.multiplyVec3(vec3.right()).uniformScale(cx))
+      .sub(rot.multiplyVec3(vec3.up()).uniformScale(cy))
+    return {pos, rot, k, dist}
   }
 
   private onFlip(): void {
