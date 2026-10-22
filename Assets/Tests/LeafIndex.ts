@@ -3,6 +3,7 @@ import {ScenarioMetadata} from "Leaf.lspkg/Scenarios/scenario/ScenarioMetadata"
 import {SmokeLeafScenario} from "./SmokeLeafScenario"
 import {CaseRoomBasicFlowScenario} from "./CaseRoomBasicFlowScenario"
 import {Criterion1OpeningScenario} from "./Criterion1OpeningScenario"
+import {Criterion2MemoScenario} from "./Criterion2MemoScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -20,6 +21,10 @@ export class LeafIndex extends BaseScriptComponent {
     {
       id: "criterion_1",
       typename: Criterion1OpeningScenario.getTypeName(),
+    },
+    {
+      id: "criterion_2",
+      typename: Criterion2MemoScenario.getTypeName(),
     },
   ]
 }
