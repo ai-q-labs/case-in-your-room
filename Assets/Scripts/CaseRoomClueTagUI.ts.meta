@@ -1,0 +1,53 @@
+- !<AssetImportMetadata/b8e0d4e5-4ddf-47dc-90eb-071201a06ddd>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 2e3d7804-b926-4cdb-a42d-4eb1e5083e05
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 2e3d7804-b926-4cdb-a42d-4eb1e5083e05
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 04aa4c36-2cdc-416c-8fba-d9e10bea0f5d
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/04aa4c36-2cdc-416c-8fba-d9e10bea0f5d>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 4d183dac-d49a-40b0-8cc2-b852bc051204
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    textBoost: false
+    viewDistanceCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - viewDistanceCm: !<float> 160.000000
+      textBoost: 1.400000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomClueTagUI – clue name tag on hover</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float viewDistanceCm = 160 {"hint":"Viewing distance the text is sized for, in cm (clues sit 1.2 to 2 m away)", "widget":"slider", "min":50, "max":250, "step":1}'
+    - '// @input float textBoost = 1.4 {"hint":"Text size multiplier on top of the Specs type scale", "widget":"slider", "min":1, "max":3, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'

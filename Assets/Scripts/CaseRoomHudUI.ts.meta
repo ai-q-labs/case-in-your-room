@@ -1,0 +1,59 @@
+- !<AssetImportMetadata/62fe7e69-17cf-45e0-b49a-7338bdefb5d1>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> bca422bc-764e-40fb-8576-42610ae106ae
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> bca422bc-764e-40fb-8576-42610ae106ae
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> fe687d52-0d09-47b4-aba3-d53176464afc
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/fe687d52-0d09-47b4-aba3-d53176464afc>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 6417378d-c1af-4918-b658-3223a8007a47
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    arrowSizeCm: false
+    pulseColor: false
+    textBoost: false
+    viewDistanceCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - viewDistanceCm: !<float> 100.000000
+      textBoost: 2.600000
+      arrowSizeCm: 3.600000
+      pulseColor: !<Vec4> {x: 1.000000, y: 0.850000, z: 0.450000, w: 1.000000}
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomHudUI – clue counter and direction arrow</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float viewDistanceCm = 100 {"hint":"Viewing distance the text is sized for, in cm (match the lazy follow distance)", "widget":"slider", "min":50, "max":200, "step":1}'
+    - '// @input float textBoost = 2.6 {"hint":"Text size multiplier; the brief asks for counter text about 3 cm tall", "widget":"slider", "min":1, "max":4, "step":0.05}'
+    - '// @input float arrowSizeCm = 3.6 {"hint":"Arrow size in cm", "widget":"slider", "min":1, "max":8, "step":0.1}'
+    - '// @input vec4 pulseColor = "{1.0,0.85,0.45,1}" {"hint":"Color the counter flashes when it goes up", "widget":"color"}'
+    - '// @ui {"widget":"group_end"}'

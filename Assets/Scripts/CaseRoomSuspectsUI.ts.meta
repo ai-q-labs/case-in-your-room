@@ -1,0 +1,62 @@
+- !<AssetImportMetadata/e10b49c1-7c8c-4b2b-91e8-e69427130104>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 9e5a6777-84b3-4aed-b017-8504faf5ff71
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 9e5a6777-84b3-4aed-b017-8504faf5ff71
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 3c6a3561-5e92-4446-be34-a4c714ac162a
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/3c6a3561-5e92-4446-be34-a4c714ac162a>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 2af14ea3-6cdb-4c99-b459-f529e2a65293
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    bubbleWidthCm: false
+    labelDropCm: false
+    spacingCm: false
+    textBoost: false
+    viewDistanceCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - spacingCm: !<float> 45.000000
+      viewDistanceCm: !<float> 200.000000
+      textBoost: 1.250000
+      labelDropCm: !<float> 44.000000
+      bubbleWidthCm: !<float> 44.000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomSuspectsUI – names, alibi bubble, Accuse button</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float spacingCm = 40 {"hint":"Center-to-center spacing of the suspects in cm (must match the figures)", "widget":"slider", "min":30, "max":90, "step":1}'
+    - '// @input float viewDistanceCm = 200 {"hint":"Viewing distance the text is sized for, in cm (the line-up stands about 2 m away)", "widget":"slider", "min":80, "max":300, "step":1}'
+    - '// @input float textBoost = 1.25 {"hint":"Text size multiplier on top of the Specs type scale", "widget":"slider", "min":1, "max":3, "step":0.05}'
+    - '// @input float labelDropCm = 44 {"hint":"Height of the name labels below the figure centers, in cm", "widget":"slider", "min":20, "max":80, "step":0.5}'
+    - '// @input float bubbleWidthCm = 44 {"hint":"Width of the alibi speech bubble in cm; it is kept inside the line-up width so it stays in view", "widget":"slider", "min":20, "max":60, "step":0.5}'
+    - '// @ui {"widget":"group_end"}'

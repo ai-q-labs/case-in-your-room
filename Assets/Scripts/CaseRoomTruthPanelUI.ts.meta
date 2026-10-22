@@ -1,0 +1,56 @@
+- !<AssetImportMetadata/051fa709-5c1e-48cc-8c54-89304dd68a0e>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 74263bb9-6bb3-4687-97a5-3eb92027a593
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 74263bb9-6bb3-4687-97a5-3eb92027a593
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f7caadda-651c-4034-ace8-7eb41dbe4c95
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f7caadda-651c-4034-ace8-7eb41dbe4c95>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 34c2473c-0bb8-4030-a7d6-aac7bacea41e
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    panelWidthCm: false
+    textBoost: false
+    viewDistanceCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - panelWidthCm: !<float> 60.000000
+      viewDistanceCm: !<float> 150.000000
+      textBoost: 1.700000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomTruthPanelUI – the one-sentence truth</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float panelWidthCm = 60 {"hint":"Panel width in cm (the brief asks for about 60 cm)", "widget":"slider", "min":30, "max":90, "step":1}'
+    - '// @input float viewDistanceCm = 150 {"hint":"Viewing distance the text is sized for, in cm (about 1.5 m)", "widget":"slider", "min":50, "max":250, "step":1}'
+    - '// @input float textBoost = 1.7 {"hint":"Text size multiplier on top of the Specs type scale (match the opening board look)", "widget":"slider", "min":1, "max":3, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'

@@ -1,0 +1,56 @@
+- !<AssetImportMetadata/5de6278a-e666-4e6e-b8e1-de7f857b01e3>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 830a2876-56c0-40f3-ba78-c0f8276a148b
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 830a2876-56c0-40f3-ba78-c0f8276a148b
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> d80bd6f2-eaaf-4f3e-b56b-29201595a9f8
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/d80bd6f2-eaaf-4f3e-b56b-29201595a9f8>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 0e2e7a17-9799-487f-a43f-81167e1f8746
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    textBoost: false
+    viewDistanceCm: false
+    widthCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - widthCm: !<float> 48.000000
+      viewDistanceCm: !<float> 120.000000
+      textBoost: 1.600000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomCaptionUI – caption below the line of sight</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float widthCm = 48 {"hint":"Caption width in cm", "widget":"slider", "min":20, "max":80, "step":1}'
+    - '// @input float viewDistanceCm = 120 {"hint":"Viewing distance the text is sized for, in cm (match the lazy follow distance)", "widget":"slider", "min":50, "max":250, "step":1}'
+    - '// @input float textBoost = 1.6 {"hint":"Text size multiplier on top of the Specs type scale", "widget":"slider", "min":1, "max":3, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'

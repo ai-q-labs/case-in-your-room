@@ -1,0 +1,56 @@
+- !<AssetImportMetadata/4180df42-f3bc-426f-95ca-2028794d3db1>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 04de60ec-8839-4aee-a42a-d18d02cc0fd5
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 04de60ec-8839-4aee-a42a-d18d02cc0fd5
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 24d5d7c1-b661-4cf5-8e6c-07b76b5f1f37
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/24d5d7c1-b661-4cf5-8e6c-07b76b5f1f37>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: fcff9f92-9c1a-4d57-a810-9cfb3c27934a
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    distanceCm: false
+    dropCm: false
+    followSpeed: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - distanceCm: !<float> 100.000000
+      dropCm: !<float> 20.000000
+      followSpeed: !<float> 2.000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomLazyFollow – slow head follow</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float distanceCm = 100 {"hint":"Distance in front of the eyes, in cm", "widget":"slider", "min":40, "max":250, "step":1}'
+    - '// @input float dropCm = 20 {"hint":"How far below the line of sight, in cm", "widget":"slider", "min":0, "max":60, "step":0.5}'
+    - '// @input float followSpeed = 2 {"hint":"Catch-up speed (higher follows faster; low values feel lazy)", "widget":"slider", "min":0.3, "max":10, "step":0.1}'
+    - '// @ui {"widget":"group_end"}'

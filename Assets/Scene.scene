@@ -7,6 +7,7 @@
     - !<own> c45550d1-bdfb-4b6b-8602-6290007e31f2
     - !<own> ef01706d-b25e-449a-92a4-948b5444074a
     - !<own> f3f065b3-3a70-445f-8875-e961f04eae21
+    - !<own> 3587bd11-28ef-4401-b01f-1ef7e9262c4c
   layers: !<Layers/267ee9a7-aff2-4f9d-9a49-f71214747d03>
     userLayers:
       - id: 1
@@ -354,6 +355,26 @@
     - !<own> 6a99bdcf-c194-46c1-ba16-945f1d48a1dd
   Components:
     []
+- !<ScriptComponent/095029cd-2b15-4ee7-bd7f-4595fa774f61>
+  PrefabRemaps:
+    []
+  Name: CaseRoomCaptionUI
+  Enabled: true
+  ScriptAsset: !<reference> 830a2876-56c0-40f3-ba78-c0f8276a148b
+  ScriptInputsDefault:
+    widthCm: true
+    viewDistanceCm: true
+    textBoost: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      widthCm: !<float> 48.000000
+      viewDistanceCm: !<float> 120.000000
+      textBoost: 1.600000
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/0a0e1d78-8246-4f5b-ab1a-fdc51837956d>
   PrefabRemaps:
     []
@@ -501,6 +522,21 @@
     - !<own> a6af4948-9adc-4052-ae22-db902dd2764e
   Components:
     []
+- !<SceneObject/13676c64-76cb-4683-a232-87ed8b9bed83>
+  PrefabRemaps:
+    []
+  Name: Clue_Memo
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 84.900002, y: 77.800003, z: -84.900002}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> e4ffea18-a72d-4958-ab73-a871fddaa291
 - !<SceneObject/181c239f-175e-4912-94fc-d37a2599b2d6>
   PrefabRemaps:
     []
@@ -516,6 +552,21 @@
     []
   Components:
     []
+- !<SceneObject/1b1c46e0-4cd0-4897-ba64-c7de1fa4ad3e>
+  PrefabRemaps:
+    []
+  Name: Suspect_EdgarHale
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: -40.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 6d799c11-1fdb-4450-ac58-27824dac5b50
 - !<RenderMeshVisual/1f969daa-5809-4500-b314-98d91ccba131>
   PrefabRemaps:
     []
@@ -551,6 +602,25 @@
     []
   Components:
     - !<own> e1031f7e-3474-489f-a529-282f7192f812
+- !<SceneObject/218b1438-6cb4-4163-aa46-7f59d88b3543>
+  PrefabRemaps:
+    []
+  Name: Clues
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    - !<own> 13676c64-76cb-4683-a232-87ed8b9bed83
+    - !<own> 5aad468f-4957-42dc-b3a3-6c4193f57e1a
+    - !<own> daa781cf-5c3e-46c6-85df-591eeee20926
+    - !<own> b4fc9638-9719-4121-8949-2d9105f6c641
+    - !<own> 430f9221-c872-4534-9767-3b3093e046fd
+  Components:
+    []
 - !<SceneObject/23018601-1041-4785-a20e-9ad5ab722f95>
   PrefabRemaps:
     []
@@ -698,6 +768,24 @@
     ring-3_end_end_end: !<reference> b93dfa60-41bd-4999-ac0f-4b2f1df2bdaf
     thumb-3_end_end_end_end: !<reference> 08e3cc22-f2e1-49fb-9ddc-145fe6547ce3
     pinky-3_end_end: !<reference> d08269e3-acd4-4156-b5b9-477ca259611d
+- !<SceneObject/2aeb7bad-49d4-4d0e-b941-8ceb20b741e5>
+  PrefabRemaps:
+    []
+  Name: SuspectLineup
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: -200.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    - !<own> 1b1c46e0-4cd0-4897-ba64-c7de1fa4ad3e
+    - !<own> c72428ce-3e9e-4630-81b9-e6c46dc63eec
+    - !<own> 9f02d713-a0c2-486e-bfb6-73b5a3d37fbf
+    - !<own> 9281f4c4-dfb4-40da-8128-5895004e563e
+  Components:
+    []
 - !<SceneObject/2dae2a27-8ce6-466a-8bff-622195c1b3a8>
   PrefabRemaps:
     []
@@ -713,6 +801,32 @@
     - !<own> a7da4af4-3d84-4acd-a31e-920a56b4c5c8
   Components:
     []
+- !<ScriptComponent/2e117610-5b00-46a1-9de0-aecd1aa52ded>
+  PrefabRemaps:
+    []
+  Name: CaseRoomClue
+  Enabled: true
+  ScriptAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  ScriptInputsDefault:
+    faceRoomCenter: true
+    hitboxMinCm: true
+    glowColor: true
+    inspectedTint: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      clueId: footprints
+      restPitchDeg: !<float> -90.000000
+      faceRoomCenter: true
+      hitboxMinCm: !<float> 30.000000
+      glowColor: !<Vec3> {x: 1.000000, y: 0.820000, z: 0.420000}
+      inspectedTint: !<Vec4> {x: 0.620000, y: 1.000000, z: 0.780000, w: 1.000000}
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
 - !<RenderMeshVisual/335c5f8b-2917-49e8-8af5-220696e9bc09>
   PrefabRemaps:
     []
@@ -768,6 +882,24 @@
   BlendNormals: false
   BlendShapes:
     {}
+- !<SceneObject/3587bd11-28ef-4401-b01f-1ef7e9262c4c>
+  PrefabRemaps:
+    []
+  Name: CaseRoom
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    - !<own> d8e8158e-06bf-42b0-91c3-8bbb4c853b9e
+    - !<own> 2aeb7bad-49d4-4d0e-b941-8ceb20b741e5
+    - !<own> ddd75995-12f3-4e52-8e6f-317bc840cc96
+    - !<own> ff514058-d820-4492-9b15-598772e4064d
+  Components:
+    - !<own> 87aba105-bcb0-47d6-8b54-e8c49a5cd546
 - !<SceneObject/3661a02d-e367-4cf5-af47-407a191f4ce2>
   PrefabRemaps:
     []
@@ -829,6 +961,32 @@
     - !<own> 54130007-65c1-48d3-b9df-0866d8112e01
   Components:
     []
+- !<ScriptComponent/3dcd980b-08ec-46eb-b400-ee74137ae517>
+  PrefabRemaps:
+    []
+  Name: CaseRoomStandIn
+  Enabled: true
+  ScriptAsset: !<reference> 2b76706d-14a4-4095-b914-3ac0cff20bb0
+  ScriptInputsDefault:
+    kind: true
+    widthCm: true
+    depthCm: true
+    heightCm: true
+    color: true
+    faceRoomCenter: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      kind: Desk
+      widthCm: !<float> 100.000000
+      depthCm: !<float> 55.000000
+      heightCm: !<float> 75.000000
+      color: !<Vec4> {x: 0.860000, y: 0.720000, z: 0.520000, w: 1.000000}
+      faceRoomCenter: true
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/3de2c7ea-1525-465a-9056-68565a4014a7>
   PrefabRemaps:
     []
@@ -874,6 +1032,21 @@
     []
   Components:
     - !<own> 1f969daa-5809-4500-b314-98d91ccba131
+- !<SceneObject/430f9221-c872-4534-9767-3b3093e046fd>
+  PrefabRemaps:
+    []
+  Name: Clue_TornPhoto
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 106.099998, y: 190.000000, z: 106.099998}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> e206254c-8efe-45e5-b606-3623d27fa933
 - !<SceneObject/44097eaf-01da-45fb-8973-3bd8172618de>
   PrefabRemaps:
     []
@@ -889,6 +1062,27 @@
     []
   Components:
     []
+- !<ScriptComponent/4610b9b3-3bbc-4054-9597-92dbbc75096e>
+  PrefabRemaps:
+    []
+  Name: CaseRoomStandIn
+  Enabled: true
+  ScriptAsset: !<reference> 2b76706d-14a4-4095-b914-3ac0cff20bb0
+  ScriptInputsDefault:
+    faceRoomCenter: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      kind: Wall
+      widthCm: !<float> 120.000000
+      depthCm: !<float> 6.000000
+      heightCm: !<float> 230.000000
+      color: !<Vec4> {x: 0.800000, y: 0.820000, z: 0.880000, w: 1.000000}
+      faceRoomCenter: true
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/46b79537-a269-46f1-9483-500d7a4170d6>
   PrefabRemaps:
     []
@@ -919,6 +1113,21 @@
     - !<own> 8fe2a532-9bf3-4cde-b598-04ce5470718d
   Components:
     []
+- !<SceneObject/47e83434-6ee2-4976-957b-5848ddae9913>
+  PrefabRemaps:
+    []
+  Name: TruthPanelUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 22.000000, z: -150.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 840679f3-a1a2-4804-9a04-518e6cd33077
 - !<SceneObject/4c195c04-c397-454e-bd08-3485f37d84fe>
   PrefabRemaps:
     []
@@ -934,6 +1143,27 @@
     - !<own> 9c3a7929-faa9-4369-a85c-c75a6ab4eee7
   Components:
     []
+- !<ScriptComponent/4ca86faf-1d6a-4e3c-b1d0-93253b37150e>
+  PrefabRemaps:
+    []
+  Name: CaseRoomInspectPanelUI
+  Enabled: true
+  ScriptAsset: !<reference> 6a17bce2-4976-478b-9b4f-35fe9343c40b
+  ScriptInputsDefault:
+    viewDistanceCm: true
+    textBoost: true
+    gapCm: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      infoWidthCm: !<float> 22.000000
+      viewDistanceCm: !<float> 50.000000
+      textBoost: 1.400000
+      gapCm: 1.500000
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/4cb212ad-5246-4215-adf1-aaf3ccfc0e9c>
   PrefabRemaps:
     []
@@ -994,6 +1224,21 @@
     - !<own> bf2095b6-c6f8-48c8-b840-e0a6cec0dc99
   Components:
     []
+- !<SceneObject/5aad468f-4957-42dc-b3a3-6c4193f57e1a>
+  PrefabRemaps:
+    []
+  Name: Clue_Footprints
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: -106.099998, y: 0.600000, z: -106.099998}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 2e117610-5b00-46a1-9de0-aecd1aa52ded
 - !<ScriptComponent/5f153ad7-2baa-4fd9-a298-0dcfad86da3b>
   PrefabRemaps:
     []
@@ -1031,6 +1276,24 @@
   ScriptInputs:
     "":
       {}
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/61bc1f14-f8d4-44e4-b9a9-b769b2af3b55>
+  PrefabRemaps:
+    []
+  Name: CaseRoomClueTagUI
+  Enabled: true
+  ScriptAsset: !<reference> 2e3d7804-b926-4cdb-a42d-4eb1e5083e05
+  ScriptInputsDefault:
+    viewDistanceCm: true
+    textBoost: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      viewDistanceCm: !<float> 160.000000
+      textBoost: 1.400000
   ScriptTypes:
     "":
       {}
@@ -1220,6 +1483,31 @@
     - !<own> 0e778a10-bd57-4a2a-b20a-b6f4326e8058
   Components:
     []
+- !<ScriptComponent/6d799c11-1fdb-4450-ac58-27824dac5b50>
+  PrefabRemaps:
+    []
+  Name: CaseRoomSuspect
+  Enabled: true
+  ScriptAsset: !<reference> 9b3037d9-709f-4c71-9da6-552a2221c2a7
+  ScriptInputsDefault:
+    suspectIndex: true
+    figureColor: true
+    figureWidthCm: true
+    idleBrightness: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      suspectIndex: !<float> 0.000000
+      figureColor: !<Vec3> {x: 0.700000, y: 1.000000, z: 0.780000}
+      figureWidthCm: !<float> 31.000000
+      hitboxWidthCm: !<float> 32.000000
+      idleBrightness: 0.420000
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/6dbaab8f-d98a-4f36-b836-1d7c8a0cca87>
   PrefabRemaps:
     []
@@ -1359,6 +1647,54 @@
     - !<own> 3b4f5057-b516-4d3b-9c8d-14c81af2f505
   Components:
     []
+- !<SceneObject/7d12ba92-cccb-46c5-9461-046659c969ec>
+  PrefabRemaps:
+    []
+  Name: CaptionUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: -18.000000, z: -120.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 095029cd-2b15-4ee7-bd7f-4595fa774f61
+    - !<own> a0742bbe-122b-42fd-81e6-3ec524e7fda8
+- !<SceneObject/7d4a7482-8e48-4a3f-9581-f7dc331be1c7>
+  PrefabRemaps:
+    []
+  Name: StandIn_ClockWall
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 205.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 4610b9b3-3bbc-4054-9597-92dbbc75096e
+- !<SceneObject/7e1d664f-3e10-4a37-a83f-a804613d46b9>
+  PrefabRemaps:
+    []
+  Name: StandIns
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    - !<own> 864d8fae-87b3-46ed-b63b-43485a4735c8
+    - !<own> 9c324ac6-8c9d-4c4b-a8e4-20ff6540b9a9
+    - !<own> 7d4a7482-8e48-4a3f-9581-f7dc331be1c7
+  Components:
+    []
 - !<SceneObject/7e2075c6-0882-4275-8365-16a03da73298>
   PrefabRemaps:
     []
@@ -1374,6 +1710,21 @@
     - !<own> 58ef319f-850e-40dd-8295-e6dc36ab4854
   Components:
     []
+- !<SceneObject/7f241e28-c0cb-4f14-a65f-70396a737d5b>
+  PrefabRemaps:
+    []
+  Name: InspectPanelUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: -18.000000, z: -50.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 4ca86faf-1d6a-4e3c-b1d0-93253b37150e
 - !<SceneObject/7fb3591f-54a2-4aee-b07d-fd10d56538c8>
   PrefabRemaps:
     []
@@ -1464,6 +1815,26 @@
     - !<own> 08e3cc22-f2e1-49fb-9ddc-145fe6547ce3
   Components:
     []
+- !<ScriptComponent/840679f3-a1a2-4804-9a04-518e6cd33077>
+  PrefabRemaps:
+    []
+  Name: CaseRoomTruthPanelUI
+  Enabled: true
+  ScriptAsset: !<reference> 74263bb9-6bb3-4687-97a5-3eb92027a593
+  ScriptInputsDefault:
+    panelWidthCm: true
+    viewDistanceCm: true
+    textBoost: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      panelWidthCm: !<float> 60.000000
+      viewDistanceCm: !<float> 150.000000
+      textBoost: 1.700000
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/859e1ef3-3021-4825-8626-f1dc323b9252>
   PrefabRemaps:
     []
@@ -1479,6 +1850,21 @@
     - !<own> 6c1f70d7-86d0-4972-b203-29780f8798e6
   Components:
     []
+- !<SceneObject/864d8fae-87b3-46ed-b63b-43485a4735c8>
+  PrefabRemaps:
+    []
+  Name: StandIn_Desk
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 95.000000, y: 0.000000, z: -95.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 3dcd980b-08ec-46eb-b400-ee74137ae517
 - !<SceneObject/879ce45b-bd5e-40ff-a3fe-d821523427e4>
   PrefabRemaps:
     []
@@ -1497,6 +1883,73 @@
     - !<own> 1fc7fa3e-6910-4741-b8a7-1b6660a39a9d
   Components:
     - !<own> 28e05826-1521-46fa-a54c-80f2957ec80c
+- !<ScriptComponent/87aba105-bcb0-47d6-8b54-e8c49a5cd546>
+  PrefabRemaps:
+    []
+  Name: CaseRoomMain
+  Enabled: true
+  ScriptAsset: !<reference> e029c760-b195-4fe9-8cfb-5b28355c798d
+  ScriptInputsDefault:
+    eyeHeightCm: true
+    boardDistanceCm: true
+    inspectDistanceCm: true
+    lineupDistanceCm: true
+    debugLog: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      crimeScene: !<reference.SceneObject> d8e8158e-06bf-42b0-91c3-8bbb4c853b9e
+      suspectLineup: !<reference.SceneObject> 2aeb7bad-49d4-4d0e-b941-8ceb20b741e5
+      clueMemo: !<MappingBased.AssignableType_1> e4ffea18-a72d-4958-ab73-a871fddaa291
+      clueFootprints: !<MappingBased.AssignableType_2> 2e117610-5b00-46a1-9de0-aecd1aa52ded
+      clueClock: !<MappingBased.AssignableType_3> df7c22e7-562c-4959-969c-e526a5d3a797
+      clueGlass: !<MappingBased.AssignableType_4> bfe05148-b400-47ee-be52-76b7e57926c5
+      cluePhoto: !<MappingBased.AssignableType_5> e206254c-8efe-45e5-b606-3623d27fa933
+      standInDesk: !<MappingBased.AssignableType_6> 3dcd980b-08ec-46eb-b400-ee74137ae517
+      standInChair: !<MappingBased.AssignableType_7> ebbf3837-f874-41e7-809e-f2336ac86cca
+      standInWall: !<MappingBased.AssignableType_8> 4610b9b3-3bbc-4054-9597-92dbbc75096e
+      suspectEdgar: !<MappingBased.AssignableType_9> 6d799c11-1fdb-4450-ac58-27824dac5b50
+      suspectNora: !<MappingBased.AssignableType_10> f6bcdb96-ae9b-4c7a-a4f0-dad09a93b881
+      suspectIris: !<MappingBased.AssignableType_11> a803c2e4-6b6f-4513-ac0d-339f069d3432
+      openingBoard: !<MappingBased.AssignableType_12> 8a069b3c-69c3-41a4-8d76-05d334ee4a35
+      hud: !<MappingBased.AssignableType_13> e2b1e367-278e-43fa-b498-941c2374ffb1
+      caption: !<MappingBased.AssignableType_14> 095029cd-2b15-4ee7-bd7f-4595fa774f61
+      inspectPanel: !<MappingBased.AssignableType_15> 4ca86faf-1d6a-4e3c-b1d0-93253b37150e
+      clueTag: !<MappingBased.AssignableType_16> 61bc1f14-f8d4-44e4-b9a9-b769b2af3b55
+      suspectsUI: !<MappingBased.AssignableType_17> e53aa78c-2dc8-4fd8-8556-96d7420014f0
+      truthPanel: !<MappingBased.AssignableType_18> 840679f3-a1a2-4804-9a04-518e6cd33077
+      replay: !<MappingBased.AssignableType_19> d8cdfe33-dbde-4744-9e2d-3c54cb5516db
+      eyeHeightCm: !<float> 160.000000
+      boardDistanceCm: !<float> 120.000000
+      inspectDistanceCm: !<float> 50.000000
+      inspectDropCm: !<float> 3.000000
+      inspectMaxSizeCm: !<float> 11.000000
+      lineupDistanceCm: !<float> 200.000000
+      debugLog: true
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/8a069b3c-69c3-41a4-8d76-05d334ee4a35>
+  PrefabRemaps:
+    []
+  Name: CaseRoomOpeningBoardUI
+  Enabled: true
+  ScriptAsset: !<reference> 7eb45caf-1272-4b6a-9f32-f6cb974a8622
+  ScriptInputsDefault:
+    panelWidthCm: true
+    viewDistanceCm: true
+    textBoost: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      panelWidthCm: !<float> 60.000000
+      viewDistanceCm: !<float> 120.000000
+      textBoost: 1.800000
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/8b877074-7eee-4be1-b669-714f8d5a1da3>
   PrefabRemaps:
     []
@@ -1565,6 +2018,21 @@
     - !<own> 8cb3dd13-6ebf-41e6-9a23-94a69dd96f87
   Components:
     []
+- !<SceneObject/9281f4c4-dfb4-40da-8128-5895004e563e>
+  PrefabRemaps:
+    []
+  Name: SuspectsUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> e53aa78c-2dc8-4fd8-8556-96d7420014f0
 - !<SceneObject/9468c53c-f76f-49b7-8a49-b5ec6af1c5a3>
   PrefabRemaps:
     []
@@ -1581,6 +2049,22 @@
     - !<own> e9454e66-5d09-4a8a-bcd7-dea762326a48
   Components:
     []
+- !<SceneObject/9577057e-0b3f-47fb-b52f-90a288300302>
+  PrefabRemaps:
+    []
+  Name: HudUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: -20.000000, z: -100.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> e2b1e367-278e-43fa-b498-941c2374ffb1
+    - !<own> ee28891e-3a86-4ac1-9ef9-15dba6cb9b3c
 - !<ScriptComponent/985ced2d-d664-4093-85f5-8e66eba82052>
   PrefabRemaps:
     []
@@ -1612,6 +2096,21 @@
     - !<own> a4de4ce7-f468-4966-8a06-e29eea60c023
   Components:
     []
+- !<SceneObject/9c324ac6-8c9d-4c4b-a8e4-20ff6540b9a9>
+  PrefabRemaps:
+    []
+  Name: StandIn_Chair
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: -92.000000, y: 0.000000, z: 92.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> ebbf3837-f874-41e7-809e-f2336ac86cca
 - !<SceneObject/9c3a7929-faa9-4369-a85c-c75a6ab4eee7>
   PrefabRemaps:
     []
@@ -1673,6 +2172,39 @@
     - !<own> 46ea93d6-d161-4453-9064-6ac11e1d6523
   Components:
     []
+- !<SceneObject/9f02d713-a0c2-486e-bfb6-73b5a3d37fbf>
+  PrefabRemaps:
+    []
+  Name: Suspect_IrisBell
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 40.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> a803c2e4-6b6f-4513-ac0d-339f069d3432
+- !<ScriptComponent/a0742bbe-122b-42fd-81e6-3ec524e7fda8>
+  PrefabRemaps:
+    []
+  Name: CaseRoomLazyFollow
+  Enabled: true
+  ScriptAsset: !<reference> 04de60ec-8839-4aee-a42a-d18d02cc0fd5
+  ScriptInputsDefault:
+    followSpeed: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      distanceCm: !<float> 120.000000
+      dropCm: !<float> 18.000000
+      followSpeed: !<float> 2.000000
+  ScriptTypes:
+    "":
+      {}
 - !<ScriptComponent/a2b641e8-8775-45f1-ac99-7f8797702ba9>
   PrefabRemaps:
     []
@@ -1798,6 +2330,29 @@
     - !<own> 0c355300-e635-47c1-a8c3-5ddef30b8824
   Components:
     []
+- !<ScriptComponent/a803c2e4-6b6f-4513-ac0d-339f069d3432>
+  PrefabRemaps:
+    []
+  Name: CaseRoomSuspect
+  Enabled: true
+  ScriptAsset: !<reference> 9b3037d9-709f-4c71-9da6-552a2221c2a7
+  ScriptInputsDefault:
+    figureWidthCm: true
+    idleBrightness: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      suspectIndex: !<float> 2.000000
+      figureColor: !<Vec3> {x: 0.680000, y: 0.840000, z: 1.000000}
+      figureWidthCm: !<float> 31.000000
+      hitboxWidthCm: !<float> 32.000000
+      idleBrightness: 0.420000
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/a98a7d22-28b9-4357-97cd-1486e721ac5d>
   PrefabRemaps:
     []
@@ -1843,6 +2398,21 @@
     - !<own> 3de2c7ea-1525-465a-9056-68565a4014a7
   Components:
     []
+- !<SceneObject/b2485a6f-fbc2-44a4-9ffa-bce5aa5e6a7e>
+  PrefabRemaps:
+    []
+  Name: OpeningBoardUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: -120.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 8a069b3c-69c3-41a4-8d76-05d334ee4a35
 - !<SceneObject/b463be13-dddb-4b36-a3dd-c344bd3d8ef5>
   PrefabRemaps:
     []
@@ -1873,6 +2443,21 @@
     - !<own> 23018601-1041-4785-a20e-9ad5ab722f95
   Components:
     []
+- !<SceneObject/b4fc9638-9719-4121-8949-2d9105f6c641>
+  PrefabRemaps:
+    []
+  Name: Clue_BrokenGlass
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: -84.900002, y: 50.000000, z: 84.900002}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> bfe05148-b400-47ee-be52-76b7e57926c5
 - !<SceneObject/b54dc8b5-dbcf-4fcc-a310-fb436127cc60>
   PrefabRemaps:
     []
@@ -2008,6 +2593,33 @@
     []
   Components:
     []
+- !<ScriptComponent/bfe05148-b400-47ee-be52-76b7e57926c5>
+  PrefabRemaps:
+    []
+  Name: CaseRoomClue
+  Enabled: true
+  ScriptAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  ScriptInputsDefault:
+    restPitchDeg: true
+    faceRoomCenter: true
+    hitboxMinCm: true
+    glowColor: true
+    inspectedTint: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      clueId: glass
+      restPitchDeg: !<float> 0.000000
+      faceRoomCenter: true
+      hitboxMinCm: !<float> 30.000000
+      glowColor: !<Vec3> {x: 1.000000, y: 0.820000, z: 0.420000}
+      inspectedTint: !<Vec4> {x: 0.620000, y: 1.000000, z: 0.780000, w: 1.000000}
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/c45550d1-bdfb-4b6b-8602-6290007e31f2>
   PrefabRemaps:
     []
@@ -2023,6 +2635,21 @@
     []
   Components:
     - !<own> a2b641e8-8775-45f1-ac99-7f8797702ba9
+- !<SceneObject/c72428ce-3e9e-4630-81b9-e6c46dc63eec>
+  PrefabRemaps:
+    []
+  Name: Suspect_NoraVale
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> f6bcdb96-ae9b-4c7a-a4f0-dad09a93b881
 - !<ScriptComponent/c8e031d3-a8a1-468a-a419-427f8556de4c>
   PrefabRemaps:
     []
@@ -2166,6 +2793,21 @@
     - !<own> bb9036be-541f-49e7-9554-c297d354da21
   Components:
     []
+- !<SceneObject/d3a594a3-06fc-4ce2-901f-255b17e1a4f7>
+  PrefabRemaps:
+    []
+  Name: ClueTagUI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 30.000000, z: -160.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 61bc1f14-f8d4-44e4-b9a9-b769b2af3b55
 - !<ScriptComponent/d3e2fbc5-8795-4913-9af6-c8626f8e6d9c>
   PrefabRemaps:
     []
@@ -2214,6 +2856,51 @@
     HasSegmentScaleCompensation: false
   Children:
     - !<own> bbcbfc17-8d65-4333-bce1-6f7239f690b8
+  Components:
+    []
+- !<ScriptComponent/d8cdfe33-dbde-4744-9e2d-3c54cb5516db>
+  PrefabRemaps:
+    []
+  Name: CaseRoomReplay
+  Enabled: true
+  ScriptAsset: !<reference> 2deaaeea-99dd-43ad-a458-94e45d48d142
+  ScriptInputsDefault:
+    threadColor: true
+    figureColor: true
+    footprintColor: true
+    walkSpeedCm: true
+    dwellSec: true
+    gatherSizeCm: true
+    gatherHeightCm: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      threadColor: !<Vec3> {x: 0.720000, y: 0.900000, z: 1.000000}
+      figureColor: !<Vec3> {x: 1.000000, y: 0.740000, z: 0.880000}
+      footprintColor: !<Vec3> {x: 0.620000, y: 0.960000, z: 1.000000}
+      walkSpeedCm: !<float> 95.000000
+      dwellSec: 3.400000
+      gatherDistanceCm: !<float> 120.000000
+      gatherSizeCm: !<float> 11.000000
+      gatherHeightCm: !<float> 14.000000
+  ScriptTypes:
+    "":
+      {}
+- !<SceneObject/d8e8158e-06bf-42b0-91c3-8bbb4c853b9e>
+  PrefabRemaps:
+    []
+  Name: CrimeScene
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    - !<own> 7e1d664f-3e10-4a37-a83f-a804613d46b9
+    - !<own> 218b1438-6cb4-4163-aa46-7f59d88b3543
   Components:
     []
 - !<SceneObject/d9071294-12e8-425f-98f1-bf308a02639e>
@@ -2276,6 +2963,21 @@
     - !<own> f74a6bbb-4fba-4d8b-9b4e-64dd1c3e9ac3
   Components:
     []
+- !<SceneObject/daa781cf-5c3e-46c6-85df-591eeee20926>
+  PrefabRemaps:
+    []
+  Name: Clue_StoppedClock
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 160.000000, z: 200.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> df7c22e7-562c-4959-969c-e526a5d3a797
 - !<SceneObject/dcc36a33-e23d-48f3-8e96-f9c9fd3cd030>
   PrefabRemaps:
     []
@@ -2306,6 +3008,53 @@
     - !<own> d4a9c5e3-fe96-4824-9b20-59f5ad39eabd
   Components:
     []
+- !<SceneObject/ddd75995-12f3-4e52-8e6f-317bc840cc96>
+  PrefabRemaps:
+    []
+  Name: UI
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    - !<own> b2485a6f-fbc2-44a4-9ffa-bce5aa5e6a7e
+    - !<own> 9577057e-0b3f-47fb-b52f-90a288300302
+    - !<own> 7d12ba92-cccb-46c5-9461-046659c969ec
+    - !<own> 7f241e28-c0cb-4f14-a65f-70396a737d5b
+    - !<own> d3a594a3-06fc-4ce2-901f-255b17e1a4f7
+    - !<own> 47e83434-6ee2-4976-957b-5848ddae9913
+  Components:
+    []
+- !<ScriptComponent/df7c22e7-562c-4959-969c-e526a5d3a797>
+  PrefabRemaps:
+    []
+  Name: CaseRoomClue
+  Enabled: true
+  ScriptAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  ScriptInputsDefault:
+    restPitchDeg: true
+    faceRoomCenter: true
+    hitboxMinCm: true
+    glowColor: true
+    inspectedTint: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      clueId: clock
+      restPitchDeg: !<float> 0.000000
+      faceRoomCenter: true
+      hitboxMinCm: !<float> 30.000000
+      glowColor: !<Vec3> {x: 1.000000, y: 0.820000, z: 0.420000}
+      inspectedTint: !<Vec4> {x: 0.620000, y: 1.000000, z: 0.780000, w: 1.000000}
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
 - !<RenderMeshVisual/e1031f7e-3474-489f-a529-282f7192f812>
   PrefabRemaps:
     []
@@ -2326,6 +3075,54 @@
   BlendNormals: false
   BlendShapes:
     {}
+- !<ScriptComponent/e206254c-8efe-45e5-b606-3623d27fa933>
+  PrefabRemaps:
+    []
+  Name: CaseRoomClue
+  Enabled: true
+  ScriptAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  ScriptInputsDefault:
+    faceRoomCenter: true
+    hitboxMinCm: true
+    glowColor: true
+    inspectedTint: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      clueId: photo
+      restPitchDeg: !<float> 20.000000
+      faceRoomCenter: true
+      hitboxMinCm: !<float> 30.000000
+      glowColor: !<Vec3> {x: 1.000000, y: 0.820000, z: 0.420000}
+      inspectedTint: !<Vec4> {x: 0.620000, y: 1.000000, z: 0.780000, w: 1.000000}
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/e2b1e367-278e-43fa-b498-941c2374ffb1>
+  PrefabRemaps:
+    []
+  Name: CaseRoomHudUI
+  Enabled: true
+  ScriptAsset: !<reference> bca422bc-764e-40fb-8576-42610ae106ae
+  ScriptInputsDefault:
+    viewDistanceCm: true
+    textBoost: true
+    arrowSizeCm: true
+    pulseColor: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      viewDistanceCm: !<float> 100.000000
+      textBoost: 2.600000
+      arrowSizeCm: 3.600000
+      pulseColor: !<Vec4> {x: 1.000000, y: 0.850000, z: 0.450000, w: 1.000000}
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/e2ba526d-75d1-466b-86a5-9cd7c42dca84>
   PrefabRemaps:
     []
@@ -2356,6 +3153,56 @@
     - !<own> 6a7a67db-5675-49bb-8f31-ba0588e3cffc
   Components:
     []
+- !<ScriptComponent/e4ffea18-a72d-4958-ab73-a871fddaa291>
+  PrefabRemaps:
+    []
+  Name: CaseRoomClue
+  Enabled: true
+  ScriptAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  ScriptInputsDefault:
+    clueId: true
+    faceRoomCenter: true
+    hitboxMinCm: true
+    glowColor: true
+    inspectedTint: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      clueId: memo
+      restPitchDeg: !<float> -60.000000
+      faceRoomCenter: true
+      hitboxMinCm: !<float> 30.000000
+      glowColor: !<Vec3> {x: 1.000000, y: 0.820000, z: 0.420000}
+      inspectedTint: !<Vec4> {x: 0.620000, y: 1.000000, z: 0.780000, w: 1.000000}
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/e53aa78c-2dc8-4fd8-8556-96d7420014f0>
+  PrefabRemaps:
+    []
+  Name: CaseRoomSuspectsUI
+  Enabled: true
+  ScriptAsset: !<reference> 9e5a6777-84b3-4aed-b017-8504faf5ff71
+  ScriptInputsDefault:
+    viewDistanceCm: true
+    textBoost: true
+    labelDropCm: true
+    bubbleWidthCm: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      spacingCm: !<float> 40.000000
+      viewDistanceCm: !<float> 200.000000
+      textBoost: 1.250000
+      labelDropCm: !<float> 44.000000
+      bubbleWidthCm: !<float> 44.000000
+  ScriptTypes:
+    "":
+      {}
 - !<DeviceTracking/e5553c8a-0b7e-4ef4-92d9-3e1318fb82c1>
   PrefabRemaps:
     []
@@ -2419,6 +3266,46 @@
     Fingers_length: 0.000000
     Thumb_inflate: 0.000000
     Thumb_length: 0.000000
+- !<ScriptComponent/ebbf3837-f874-41e7-809e-f2336ac86cca>
+  PrefabRemaps:
+    []
+  Name: CaseRoomStandIn
+  Enabled: true
+  ScriptAsset: !<reference> 2b76706d-14a4-4095-b914-3ac0cff20bb0
+  ScriptInputsDefault:
+    faceRoomCenter: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      kind: Chair
+      widthCm: !<float> 44.000000
+      depthCm: !<float> 44.000000
+      heightCm: !<float> 45.000000
+      color: !<Vec4> {x: 0.820000, y: 0.660000, z: 0.460000, w: 1.000000}
+      faceRoomCenter: true
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/ee28891e-3a86-4ac1-9ef9-15dba6cb9b3c>
+  PrefabRemaps:
+    []
+  Name: CaseRoomLazyFollow
+  Enabled: true
+  ScriptAsset: !<reference> 04de60ec-8839-4aee-a42a-d18d02cc0fd5
+  ScriptInputsDefault:
+    distanceCm: true
+    followSpeed: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      distanceCm: !<float> 100.000000
+      dropCm: !<float> 22.000000
+      followSpeed: !<float> 2.000000
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/ef01706d-b25e-449a-92a4-948b5444074a>
   PrefabRemaps:
     []
@@ -2656,6 +3543,29 @@
     - !<own> 181c239f-175e-4912-94fc-d37a2599b2d6
   Components:
     []
+- !<ScriptComponent/f6bcdb96-ae9b-4c7a-a4f0-dad09a93b881>
+  PrefabRemaps:
+    []
+  Name: CaseRoomSuspect
+  Enabled: true
+  ScriptAsset: !<reference> 9b3037d9-709f-4c71-9da6-552a2221c2a7
+  ScriptInputsDefault:
+    figureWidthCm: true
+    idleBrightness: true
+    debugColliders: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      suspectIndex: !<float> 1.000000
+      figureColor: !<Vec3> {x: 1.000000, y: 0.740000, z: 0.880000}
+      figureWidthCm: !<float> 31.000000
+      hitboxWidthCm: !<float> 32.000000
+      idleBrightness: 0.420000
+      debugColliders: false
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/f74a6bbb-4fba-4d8b-9b4e-64dd1c3e9ac3>
   PrefabRemaps:
     []
@@ -2701,3 +3611,18 @@
     - !<own> bb75b5ea-8baf-4d8d-bcf8-49bd79873881
   Components:
     []
+- !<SceneObject/ff514058-d820-4492-9b15-598772e4064d>
+  PrefabRemaps:
+    []
+  Name: Replay
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
+    Scale: {x: 1.000000, y: 1.000000, z: 1.000000}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> d8cdfe33-dbde-4744-9e2d-3c54cb5516db

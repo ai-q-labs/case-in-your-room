@@ -1,0 +1,59 @@
+- !<AssetImportMetadata/be99ad69-3c3a-4903-b059-52592055eccf>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 6a17bce2-4976-478b-9b4f-35fe9343c40b
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 6a17bce2-4976-478b-9b4f-35fe9343c40b
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 6a4e0120-8e04-4346-8458-418a122b3b84
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/6a4e0120-8e04-4346-8458-418a122b3b84>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 490bf890-7fab-48c7-9f09-d2863e2481b6
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    gapCm: false
+    infoWidthCm: false
+    textBoost: false
+    viewDistanceCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - infoWidthCm: !<float> 24.000000
+      viewDistanceCm: !<float> 50.000000
+      textBoost: 1.400000
+      gapCm: 1.500000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomInspectPanelUI – description + Flip / Put back</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float infoWidthCm = 22 {"hint":"Width of the description panel in cm", "widget":"slider", "min":12, "max":40, "step":0.5}'
+    - '// @input float viewDistanceCm = 50 {"hint":"Viewing distance the text is sized for, in cm (the clue is held about 50 cm away)", "widget":"slider", "min":30, "max":120, "step":1}'
+    - '// @input float textBoost = 1.4 {"hint":"Text size multiplier on top of the Specs type scale", "widget":"slider", "min":1, "max":3, "step":0.05}'
+    - '// @input float gapCm = 1.5 {"hint":"Gap between the clue and the panels, in cm", "widget":"slider", "min":0, "max":6, "step":0.1}'
+    - '// @ui {"widget":"group_end"}'

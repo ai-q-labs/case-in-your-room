@@ -1,0 +1,65 @@
+- !<AssetImportMetadata/548618a5-2e22-4114-bc77-f073098761a2>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 2b76706d-14a4-4095-b914-3ac0cff20bb0
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 2b76706d-14a4-4095-b914-3ac0cff20bb0
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> be580c1f-10dc-4555-a66b-2844ab72817f
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/be580c1f-10dc-4555-a66b-2844ab72817f>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: fb3a72ea-bc0e-4ad3-8e43-79551613b8ed
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    color: false
+    depthCm: false
+    faceRoomCenter: false
+    heightCm: false
+    kind: false
+    widthCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - kind: Desk
+      widthCm: !<float> 100.000000
+      depthCm: !<float> 55.000000
+      heightCm: !<float> 75.000000
+      color: !<Vec4> {x: 0.860000, y: 0.720000, z: 0.520000, w: 1.000000}
+      faceRoomCenter: true
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomStandIn – preview stand-in furniture</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input string kind = "Desk" {"hint":"Which stand-in to build", "widget":"combobox", "values":[{"label":"Desk", "value":"Desk"}, {"label":"Chair", "value":"Chair"}, {"label":"Wall", "value":"Wall"}]}'
+    - '// @input float widthCm = 100 {"hint":"Width in cm (left-right as seen from the room center)", "widget":"slider", "min":20, "max":300, "step":1}'
+    - '// @input float depthCm = 55 {"hint":"Depth in cm (toward the room center)", "widget":"slider", "min":3, "max":120, "step":1}'
+    - '// @input float heightCm = 75 {"hint":"Height in cm: desk top, chair seat, or wall height", "widget":"slider", "min":10, "max":300, "step":1}'
+    - '// @input vec4 color = "{0.86,0.72,0.52,1}" {"hint":"Surface color (keep it light: the display is additive)", "widget":"color"}'
+    - '// @input bool faceRoomCenter = true {"hint":"Turn so the front (+Z) faces the CrimeScene origin (where the player starts)"}'
+    - '// @ui {"widget":"group_end"}'

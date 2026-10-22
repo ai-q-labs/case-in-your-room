@@ -1,0 +1,68 @@
+- !<AssetImportMetadata/022964c3-9e09-432a-b629-ea516807e23b>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 9b3037d9-709f-4c71-9da6-552a2221c2a7
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 9b3037d9-709f-4c71-9da6-552a2221c2a7
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f88670fa-f89d-45cd-9590-a4ce018f2b06
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f88670fa-f89d-45cd-9590-a4ce018f2b06>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: b05c78db-5799-470f-9903-d3eeab1cfa78
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    debugColliders: false
+    figureColor: false
+    figureWidthCm: false
+    hitboxWidthCm: false
+    idleBrightness: false
+    suspectIndex: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - suspectIndex: !<float> 0.000000
+      figureColor: !<Vec3> {x: 0.700000, y: 1.000000, z: 0.780000}
+      figureWidthCm: !<float> 31.000000
+      hitboxWidthCm: !<float> 34.000000
+      idleBrightness: 0.420000
+      debugColliders: false
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomSuspect – translucent suspect figure</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float suspectIndex {"hint":"Which suspect this figure is", "widget":"combobox", "values":[{"label":"Edgar Hale", "value":0}, {"label":"Nora Vale", "value":1}, {"label":"Iris Bell", "value":2}]}'
+    - '// @input vec3 figureColor = "{0.7,1.0,0.78}" {"hint":"Figure color (light colors only: the display is additive)", "widget":"color"}'
+    - "// @input float figureWidthCm = 31 {\"hint\":\"Figure width in cm at the shoulders (slimmer than real shoulders so neighbors don't overlap)\", \"widget\":\"slider\", \"min\":20, \"max\":40, \"step\":0.5}"
+    - '// @input float hitboxWidthCm = 32 {"hint":"Pinch target width in cm (the brief caps it at 40 cm so neighbors never overlap)", "widget":"slider", "min":20, "max":40, "step":1}'
+    - '// @input float idleBrightness = 0.42 {"hint":"Figure brightness when not selected (0..1)", "widget":"slider", "min":0.1, "max":1, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Debug"}'
+    - '// @input bool debugColliders {"hint":"Draw the pinch target collider"}'
+    - '// @ui {"widget":"group_end"}'

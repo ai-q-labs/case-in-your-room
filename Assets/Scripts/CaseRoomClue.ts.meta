@@ -1,0 +1,71 @@
+- !<AssetImportMetadata/a6a3006c-b615-4bdb-873b-82808e25e65a>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 3565ff0a-d674-4001-97e1-019e15d2b569
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 94fb17a2-de67-4fce-b493-5d97ec9407c3
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/94fb17a2-de67-4fce-b493-5d97ec9407c3>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 0302fae0-5fb1-4fda-9b8b-94fe9cd304b5
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    clueId: false
+    debugColliders: false
+    faceRoomCenter: false
+    glowColor: false
+    hitboxMinCm: false
+    inspectedTint: false
+    restPitchDeg: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - clueId: memo
+      restPitchDeg: !<float> 0.000000
+      faceRoomCenter: true
+      hitboxMinCm: !<float> 30.000000
+      glowColor: !<Vec3> {x: 1.000000, y: 0.820000, z: 0.420000}
+      inspectedTint: !<Vec4> {x: 0.620000, y: 1.000000, z: 0.780000, w: 1.000000}
+      debugColliders: false
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomClue – one inspectable clue</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input string clueId = "memo" {"hint":"Which clue this is (drives geometry and texts)", "widget":"combobox", "values":[{"label":"Memo", "value":"memo"}, {"label":"Footprints", "value":"footprints"}, {"label":"Stopped clock", "value":"clock"}, {"label":"Broken glass", "value":"glass"}, {"label":"Torn photo", "value":"photo"}]}'
+    - '// @input float restPitchDeg {"hint":"Tilt at rest in degrees: -90 lies flat face-up, 0 stands facing the room center, + leans down", "widget":"slider", "min":-90, "max":90, "step":1}'
+    - "// @input bool faceRoomCenter = true {\"hint\":\"Turn the clue so its face points at the room center (the player's start position)\"}"
+    - '// @input float hitboxMinCm = 30 {"hint":"Smallest pinch-target size in cm (the brief asks for about 30 cm)", "widget":"slider", "min":10, "max":60, "step":1}'
+    - '// @input vec3 glowColor = "{1.0,0.82,0.42}" {"hint":"Glow color around the clue", "widget":"color"}'
+    - '// @input vec4 inspectedTint = "{0.62,1.0,0.78,1}" {"hint":"Tint mixed into the clue once it has been inspected and put back", "widget":"color"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Debug"}'
+    - '// @input bool debugColliders {"hint":"Draw the pinch target collider"}'
+    - '// @ui {"widget":"group_end"}'

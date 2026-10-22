@@ -1,0 +1,56 @@
+- !<AssetImportMetadata/33d50a1e-2a6a-4c06-982f-4dc2ed8ed72f>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 7eb45caf-1272-4b6a-9f32-f6cb974a8622
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 7eb45caf-1272-4b6a-9f32-f6cb974a8622
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 91bb5186-a5f8-4634-91fb-a14ae6d02f1d
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/91bb5186-a5f8-4634-91fb-a14ae6d02f1d>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 0d0562c2-454f-4ca4-b820-7875049f9622
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    panelWidthCm: false
+    textBoost: false
+    viewDistanceCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - panelWidthCm: !<float> 60.000000
+      viewDistanceCm: !<float> 120.000000
+      textBoost: 1.800000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomOpeningBoardUI – title, case, how to play, Start</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float panelWidthCm = 60 {"hint":"Board width in cm (the brief asks for about 60 cm)", "widget":"slider", "min":30, "max":90, "step":1}'
+    - '// @input float viewDistanceCm = 120 {"hint":"Viewing distance the text is sized for, in cm (the board sits about 1.2 m away)", "widget":"slider", "min":50, "max":250, "step":1}'
+    - '// @input float textBoost = 1.8 {"hint":"Text size multiplier on top of the Specs type scale (the board is large, so text is boosted)", "widget":"slider", "min":1, "max":3, "step":0.05}'
+    - '// @ui {"widget":"group_end"}'

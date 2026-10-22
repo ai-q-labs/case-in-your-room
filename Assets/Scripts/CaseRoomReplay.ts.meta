@@ -1,0 +1,71 @@
+- !<AssetImportMetadata/e4a6f55d-7a81-43e5-abec-0000ed3ff44e>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 2deaaeea-99dd-43ad-a458-94e45d48d142
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 2deaaeea-99dd-43ad-a458-94e45d48d142
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 68eadef1-3dc8-4c63-b25c-648cc4cbde6d
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/68eadef1-3dc8-4c63-b25c-648cc4cbde6d>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 62b9ba91-5f4b-4b7a-92ab-d1291b17c54b
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    dwellSec: false
+    figureColor: false
+    footprintColor: false
+    gatherDistanceCm: false
+    gatherHeightCm: false
+    gatherSizeCm: false
+    threadColor: false
+    walkSpeedCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - threadColor: !<Vec3> {x: 0.720000, y: 0.900000, z: 1.000000}
+      figureColor: !<Vec3> {x: 1.000000, y: 0.740000, z: 0.880000}
+      footprintColor: !<Vec3> {x: 0.620000, y: 0.960000, z: 1.000000}
+      walkSpeedCm: !<float> 95.000000
+      dwellSec: 3.400000
+      gatherDistanceCm: !<float> 110.000000
+      gatherSizeCm: !<float> 11.000000
+      gatherHeightCm: !<float> 14.000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomReplay – gather, threads and the culprit walk</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input vec3 threadColor = "{0.72,0.9,1.0}" {"hint":"Color of the glowing threads", "widget":"color"}'
+    - '// @input vec3 figureColor = "{1.0,0.74,0.88}" {"hint":"Color of the walking translucent figure", "widget":"color"}'
+    - '// @input vec3 footprintColor = "{0.62,0.96,1.0}" {"hint":"Color of the glowing footprints left on the floor", "widget":"color"}'
+    - '// @input float walkSpeedCm = 95 {"hint":"Walking speed of the figure in cm per second", "widget":"slider", "min":30, "max":250, "step":5}'
+    - '// @input float dwellSec = 3.4 {"hint":"Seconds the figure pauses at each clue (caption time)", "widget":"slider", "min":0.5, "max":8, "step":0.1}'
+    - '// @input float gatherDistanceCm = 120 {"hint":"Distance in front of the player where the clues gather, in cm", "widget":"slider", "min":60, "max":200, "step":1}'
+    - '// @input float gatherSizeCm = 11 {"hint":"Size of each gathered clue in cm (keep the row of 5 inside the view)", "widget":"slider", "min":5, "max":25, "step":0.5}'
+    - '// @input float gatherHeightCm = 14 {"hint":"How far above eye level the clues float when they gather, in cm", "widget":"slider", "min":-30, "max":40, "step":1}'
+    - '// @ui {"widget":"group_end"}'

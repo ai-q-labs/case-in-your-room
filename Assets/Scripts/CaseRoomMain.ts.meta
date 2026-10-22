@@ -1,0 +1,139 @@
+- !<AssetImportMetadata/d828b45e-624c-4b3d-a86e-a31070143e82>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> e029c760-b195-4fe9-8cfb-5b28355c798d
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> e029c760-b195-4fe9-8cfb-5b28355c798d
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> b3b91150-5458-4bb1-a0c3-373db5a97d79
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/b3b91150-5458-4bb1-a0c3-373db5a97d79>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: f74ea79c-f29f-4e32-bd4d-40e93fb5888b
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    boardDistanceCm: false
+    caption: false
+    clueClock: false
+    clueFootprints: false
+    clueGlass: false
+    clueMemo: false
+    cluePhoto: false
+    clueTag: false
+    crimeScene: false
+    debugLog: false
+    eyeHeightCm: false
+    hud: false
+    inspectDistanceCm: false
+    inspectDropCm: false
+    inspectMaxSizeCm: false
+    inspectPanel: false
+    lineupDistanceCm: false
+    openingBoard: false
+    replay: false
+    standInChair: false
+    standInDesk: false
+    standInWall: false
+    suspectEdgar: false
+    suspectIris: false
+    suspectLineup: false
+    suspectNora: false
+    suspectsUI: false
+    truthPanel: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - crimeScene: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      suspectLineup: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      clueMemo: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      clueFootprints: !<MappingBased.AssignableType_2> 00000000-0000-0000-0000-000000000000
+      clueClock: !<MappingBased.AssignableType_3> 00000000-0000-0000-0000-000000000000
+      clueGlass: !<MappingBased.AssignableType_4> 00000000-0000-0000-0000-000000000000
+      cluePhoto: !<MappingBased.AssignableType_5> 00000000-0000-0000-0000-000000000000
+      standInDesk: !<MappingBased.AssignableType_6> 00000000-0000-0000-0000-000000000000
+      standInChair: !<MappingBased.AssignableType_7> 00000000-0000-0000-0000-000000000000
+      standInWall: !<MappingBased.AssignableType_8> 00000000-0000-0000-0000-000000000000
+      suspectEdgar: !<MappingBased.AssignableType_9> 00000000-0000-0000-0000-000000000000
+      suspectNora: !<MappingBased.AssignableType_10> 00000000-0000-0000-0000-000000000000
+      suspectIris: !<MappingBased.AssignableType_11> 00000000-0000-0000-0000-000000000000
+      openingBoard: !<MappingBased.AssignableType_12> 00000000-0000-0000-0000-000000000000
+      hud: !<MappingBased.AssignableType_13> 00000000-0000-0000-0000-000000000000
+      caption: !<MappingBased.AssignableType_14> 00000000-0000-0000-0000-000000000000
+      inspectPanel: !<MappingBased.AssignableType_15> 00000000-0000-0000-0000-000000000000
+      clueTag: !<MappingBased.AssignableType_16> 00000000-0000-0000-0000-000000000000
+      suspectsUI: !<MappingBased.AssignableType_17> 00000000-0000-0000-0000-000000000000
+      truthPanel: !<MappingBased.AssignableType_18> 00000000-0000-0000-0000-000000000000
+      replay: !<MappingBased.AssignableType_19> 00000000-0000-0000-0000-000000000000
+      eyeHeightCm: !<float> 160.000000
+      boardDistanceCm: !<float> 120.000000
+      inspectDistanceCm: !<float> 50.000000
+      inspectDropCm: !<float> 18.000000
+      inspectMaxSizeCm: !<float> 14.000000
+      lineupDistanceCm: !<float> 200.000000
+      debugLog: true
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomMain – game flow for Case in Your Room</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">References</span>"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input SceneObject crimeScene {"hint":"Root of the crime scene (stand-ins + clues); moved under the player at Start"}'
+    - '// @input SceneObject suspectLineup {"hint":"Root of the suspect line-up; placed straight ahead when the suspects appear"}'
+    - '// @input AssignableType_1 clueMemo {"hint":"Clue 1: memo on the desk"}'
+    - '// @input AssignableType_2 clueFootprints {"hint":"Clue 2: footprints on the floor"}'
+    - '// @input AssignableType_3 clueClock {"hint":"Clue 3: stopped clock on the wall"}'
+    - '// @input AssignableType_4 clueGlass {"hint":"Clue 4: broken glass on the chair"}'
+    - '// @input AssignableType_5 cluePhoto {"hint":"Clue 5: torn photo above head height"}'
+    - '// @input AssignableType_6 standInDesk {"hint":"Stand-in desk (top at 75 cm)"}'
+    - '// @input AssignableType_7 standInChair {"hint":"Stand-in chair (seat at 45 cm)"}'
+    - '// @input AssignableType_8 standInWall {"hint":"Stand-in wall section for the clock"}'
+    - '// @input AssignableType_9 suspectEdgar {"hint":"Suspect figure: Edgar Hale"}'
+    - '// @input AssignableType_10 suspectNora {"hint":"Suspect figure: Nora Vale"}'
+    - '// @input AssignableType_11 suspectIris {"hint":"Suspect figure: Iris Bell"}'
+    - '// @input AssignableType_12 openingBoard {"hint":"Opening board UI"}'
+    - '// @input AssignableType_13 hud {"hint":"Counter + arrow HUD UI"}'
+    - '// @input AssignableType_14 caption {"hint":"Caption UI"}'
+    - '// @input AssignableType_15 inspectPanel {"hint":"Inspect panel UI (description + Flip / Put back)"}'
+    - '// @input AssignableType_16 clueTag {"hint":"Clue name tag UI"}'
+    - '// @input AssignableType_17 suspectsUI {"hint":"Suspect names / alibi / Accuse UI"}'
+    - '// @input AssignableType_18 truthPanel {"hint":"Truth panel UI"}'
+    - '// @input AssignableType_19 replay {"hint":"Replay controller (gather, threads, culprit walk)"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float eyeHeightCm = 160 {"hint":"Player eye height in cm; the floor is placed this far below the eyes at Start", "widget":"slider", "min":120, "max":200, "step":1}'
+    - '// @input float boardDistanceCm = 120 {"hint":"Opening board distance straight ahead, in cm", "widget":"slider", "min":60, "max":250, "step":1}'
+    - '// @input float inspectDistanceCm = 50 {"hint":"How far in front the inspected clue is held, in cm", "widget":"slider", "min":30, "max":100, "step":1}'
+    - "// @input float inspectDropCm = 3 {\"hint\":\"How far below the eyes the inspected clue is held, in cm (kept small so the clue, its description and buttons all fit in the glasses' view at 50 cm)\", \"widget\":\"slider\", \"min\":0, \"max\":50, \"step\":1}"
+    - '// @input float inspectMaxSizeCm = 11 {"hint":"Largest size of an inspected clue in cm (2x, capped so it fits the view at 50 cm)", "widget":"slider", "min":6, "max":40, "step":0.5}'
+    - '// @input float lineupDistanceCm = 200 {"hint":"Distance of the suspect line-up straight ahead, in cm", "widget":"slider", "min":100, "max":300, "step":1}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Debug"}'
+    - '// @input bool debugLog = true {"hint":"Print flow events to the log"}'
+    - '// @ui {"widget":"group_end"}'
