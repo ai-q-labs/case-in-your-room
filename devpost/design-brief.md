@@ -138,3 +138,16 @@ This part is for you, after CLAD finishes.
 5. **Label what you know.** Write "logic proven" next to anything the tests and preview show working, and "feel unproven" next to anything only real glasses could tell you (comfort over time, real hand tracking, real recognition).
 6. **Fix with design notes, not code.** Tell your agent what to change in design terms, for example: "Move the step card 15 cm lower and next to the pan. Make the Next button twice as big. Re-run the tests." If a fix takes under a minute, like nudging a panel, do it yourself in the scene.
 7. **Submit.** Record a video under 3 minutes of your Lens in the preview, public on YouTube. Make your repo public with your Lens Studio project and this `devpost/` folder. Details are on the hackathon site: https://learn-specs.devpost.com/resources
+
+## Changes during the build
+The approved brief above is kept as it was approved. These are the values that changed while building, and why. Everything else follows the brief.
+
+| What | Brief | Built | Why |
+|---|---|---|---|
+| Suspect spacing (center to center) | about 45 cm | 40 cm | In Lens Studio's preview the view is only about 117 cm wide at 2 m, so at 45 cm the outer suspects were cut off. |
+| Suspect figure width | about 35 cm | 31 cm | Narrower to match the tighter spacing. |
+| Suspect pinch target | at most 40 cm wide, never overlapping | 32 cm wide, 8 cm deep; measured aimable span 33-34 cm with a 7 cm empty gap between neighbours | Kept narrower than the spacing so a slightly-off pinch never picks the neighbour. Measured with rays swept every 1 cm across the line-up, from the eye and from a right-hand position: no aim ever selected a suspect other than the one aimed at (LEAF test `suspect_hitbox`). A 24 cm deep target had widened the outer suspects to 40 cm for oblique rays, so it was made thin. |
+| Inspected clue in the hands | about 50 cm in front, chest height, 2x size | 50 cm in front, 3 cm below eye level, 2x capped at 11 cm | At 50 cm the preview view reaches only about 15 cm to each side and 16 cm up or down (camera vertical field of view 36.6 degrees, panel aspect 0.89), so at chest height and full 2x the clue, its description and its buttons left the view. Whether this is comfortable on real glasses is feel unproven. |
+| Flip / Put back buttons | 2 buttons beside the clue | 9 x 4 cm each, stacked with a 1.6 cm gap, beside the clue, no backing plate | The LEAF IK reach test found that 2.8 cm buttons with a 0.8 cm gap let "Put back" also press "Flip", and the plate behind them took pinches meant for "Flip". 4 cm is the Specs "large" target size at about 55 cm, and 1.6 cm is more than the 1-degree minimum spacing (LEAF test `ik_inspect_reach`). |
+| What "Flip" shows | the clue spins to show its back | the clue spins 180 degrees, and the back's text ("10:40", "...ra, my only heir", or "Nothing on the back.") appears as a line in the description panel | A choice made during the build: the back's text sits in the description panel, which already uses a type size sized for 50 cm. Text drawn directly on the small 3D back was not tried. |
+| Light-up sound | a small sound for each clue | one soft chime per clue, rising in pitch, not positional | The scene has no audio listener for spatial sound. The chimes are generated locally (no samples). |

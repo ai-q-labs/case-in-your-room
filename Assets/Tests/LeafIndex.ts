@@ -8,6 +8,7 @@ import {Criterion3SuspectsScenario} from "./Criterion3SuspectsScenario"
 import {Criterion4WrongAccuseScenario} from "./Criterion4WrongAccuseScenario"
 import {Criterion5RightAccuseScenario} from "./Criterion5RightAccuseScenario"
 import {IkInspectReachScenario} from "./IkInspectReachScenario"
+import {SuspectHitboxScenario} from "./SuspectHitboxScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -47,6 +48,10 @@ export class LeafIndex extends BaseScriptComponent {
       typename: IkInspectReachScenario.getTypeName(),
       // An unreachable / out-of-view IK press fails at the call site instead of being simulated.
       parameters: {__leaf__diagnostic_policy: "fail-fast"},
+    },
+    {
+      id: "suspect_hitbox",
+      typename: SuspectHitboxScenario.getTypeName(),
     },
   ]
 }

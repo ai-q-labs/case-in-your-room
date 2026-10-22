@@ -81,8 +81,10 @@ export class CaseRoomSuspect extends BaseScriptComponent {
     addVisual(this.visual, "Outline", bust, this.outlineMat, new vec3(0, -2.8, -1), quat.quatIdentity(), new vec3(w * 1.08, 1.08, w * 1.08))
 
     this.collider = this.sceneObject.createComponent("Physics.ColliderComponent") as ColliderComponent
+    // Thin box (8 cm deep): the suspects are pinched from ~2 m with the hand ray, and a deep box widens
+    // the aimable span for oblique rays (24 cm deep made the outer suspects 40 cm wide from the right hand).
     const shape = Shape.createBoxShape()
-    shape.size = new vec3(Math.min(40, this.hitboxWidthCm), 72, 24)
+    shape.size = new vec3(Math.min(40, this.hitboxWidthCm), 72, 8)
     this.collider.shape = shape
     this.collider.fitVisual = false
     this.collider.debugDrawEnabled = this.debugColliders
