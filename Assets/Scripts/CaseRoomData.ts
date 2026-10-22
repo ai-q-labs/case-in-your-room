@@ -13,14 +13,14 @@ export interface ClueInfo {
   id: ClueId
   /** Name tag shown when the hand ray hits the clue. */
   name: string
-  /** 1-2 line description shown under the clue while inspecting. */
+  /** 1-2 line description shown just above the clue while inspecting it. */
   description: string
   /** Text on the back, or null when the back is empty. */
   backText: string | null
   /** Caption shown when the replay figure reaches this clue. */
   replayCaption: string
-  /** Not something you pick up: it stays where it is and its description shows just above it. */
-  inPlace?: boolean
+  /** Nothing to turn over (the footprints on the floor): no Flip button, only Close. */
+  noFlip?: boolean
 }
 
 export interface SuspectInfo {
@@ -45,7 +45,7 @@ export const CLUES: Record<ClueId, ClueInfo> = {
       "Small, narrow prints with a pointed heel, coming in through the kitchen-side door. Not a gardener's boot.",
     backText: null,
     replayCaption: "10:40. Nora comes in through the kitchen-side door.",
-    inPlace: true,
+    noFlip: true,
   },
   clock: {
     id: "clock",
@@ -97,8 +97,7 @@ export const TEXT = {
   start: "Start",
   lookAround: "Look around you",
   flip: "Flip",
-  putBack: "Put back",
-  close: "Close", // not in the brief: the one button under a clue described in place (footprints)
+  close: "Close", // not in the brief: replaces "Put back", since every clue is now described where it lies
   nothingOnBack: "Nothing on the back.",
   backPrefix: "On the back: ",
   suspectsAppeared: "The suspects have appeared",

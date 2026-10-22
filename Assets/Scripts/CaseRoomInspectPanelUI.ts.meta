@@ -49,11 +49,11 @@
     -
       {}
   InputLines:
-    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomInspectPanelUI – description + Flip / Put back</span>"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomInspectPanelUI – description + Flip / Close</span>"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"group_start", "label":"Settings"}'
-    - '// @input float infoWidthCm = 22 {"hint":"Width of the description panel in cm", "widget":"slider", "min":12, "max":40, "step":0.5}'
-    - '// @input float viewDistanceCm = 50 {"hint":"Viewing distance the text is sized for, in cm (the clue is held about 50 cm away)", "widget":"slider", "min":30, "max":120, "step":1}'
+    - '// @input float infoWidthCm = 22 {"hint":"Width of the description panel in cm (at the 50 cm viewing distance; main scales the whole group)", "widget":"slider", "min":12, "max":40, "step":0.5}'
+    - '// @input float viewDistanceCm = 50 {"hint":"Viewing distance the text is sized for, in cm (main scales the group to look this size)", "widget":"slider", "min":30, "max":120, "step":1}'
     - '// @input float textBoost = 1.4 {"hint":"Text size multiplier on top of the Specs type scale", "widget":"slider", "min":1, "max":3, "step":0.05}'
-    - '// @input float gapCm = 1.5 {"hint":"Gap between the clue and the panels, in cm", "widget":"slider", "min":0, "max":6, "step":0.1}'
+    - '// @input float gapCm = 1.5 {"hint":"Gap between the description panel and the row of buttons, in cm", "widget":"slider", "min":0, "max":6, "step":0.1}'
     - '// @ui {"widget":"group_end"}'

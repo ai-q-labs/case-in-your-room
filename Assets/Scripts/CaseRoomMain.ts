@@ -99,7 +99,7 @@ export class CaseRoomMain extends BaseScriptComponent {
   caption: CaseRoomCaptionUI
 
   @input
-  @hint("Inspect panel UI (description + Flip / Put back)")
+  @hint("Inspect panel UI (description + Flip / Close, shown just above the clue)")
   inspectPanel: CaseRoomInspectPanelUI
 
   @input
@@ -157,39 +157,19 @@ export class CaseRoomMain extends BaseScriptComponent {
   boardDistanceCm: number = 120
 
   @input
-  @hint("How far in front the inspected clue is held, in cm")
+  @hint("Viewing distance, in cm, whose look the description and buttons copy: shown just above a clue that is farther away, they are scaled up so they look as big as at this distance")
   @widget(new SliderWidget(30, 100, 1))
   inspectDistanceCm: number = 50
 
   @input
-  @hint("How far below the eyes the center of the inspected clue + description + buttons is held, in cm at inspectDistanceCm (6: the buttons stay within arm's reach - at 2 cm above the eyes the LEAF IK arm fell 0.6 cm short - and the whole group stays in view)")
-  @widget(new SliderWidget(0, 50, 1))
-  inspectDropCm: number = 6
-
-  @input
-  @hint("Largest size of an inspected clue in cm (2x, capped so it fits the view at 50 cm)")
-  @widget(new SliderWidget(6, 40, 0.5))
-  inspectMaxSizeCm: number = 11
-
-  @input
-  @hint("Farthest the inspected clue may be pushed back (cm) so the clue, description and buttons all fit the view; past this they shrink instead. Kept at 50: at 57 cm the LEAF IK arm could no longer press Flip directly")
-  @widget(new SliderWidget(40, 80, 1))
-  inspectMaxDistanceCm: number = 50
-
-  @input
-  @hint("Share of the view the inspected clue + description + buttons may fill, edge to edge (leaves a margin for stepping closer)")
+  @hint("Share of the view the description + buttons may fill, edge to edge, for a player looking at them")
   @widget(new SliderWidget(0.5, 1, 0.01))
   inspectViewFill: number = 0.85
 
   @input
-  @hint("Gap in degrees, as the player sees it, between a clue described in place (footprints) and the bottom of its description")
+  @hint("Gap in degrees, as the player sees it, between the top of a clue and the bottom of its description")
   @widget(new SliderWidget(0, 10, 0.5))
   inPlaceGapDeg: number = 2
-
-  @input
-  @hint("Average turn rate (deg/s) of an inspected clue on its way to the hands, as seen from the eye (slow enough to follow)")
-  @widget(new SliderWidget(10, 120, 1))
-  inspectRiseDegPerSec: number = 30
 
   @input
   @hint("Distance of the suspect line-up straight ahead, in cm")
@@ -259,8 +239,7 @@ export class CaseRoomMain extends BaseScriptComponent {
       c.onHoverChanged.add((on) => this.onClueHover(c, on))
     }
     this.inspectPanel.onFlip.add(() => this.onFlip())
-    this.inspectPanel.onPutBack.add(() => this.onPutBack())
-    this.inspectPanel.onClose.add(() => this.onPutBack()) // closing an in-place clue counts like Put back
+    this.inspectPanel.onClose.add(() => this.closeInspect())
     for (const s of this.suspects) s.onPressed.add((i) => this.onSuspectPressed(i))
     this.suspectsUI.onAccuse.add(() => this.onAccuse())
     this.setupChimes()
@@ -296,7 +275,7 @@ export class CaseRoomMain extends BaseScriptComponent {
       t.setWorldRotation(faceTowardYaw(pos, eye))
       this.log(`board placed; eye=${eye.toString()} look=${this.camT.back.toString()}`)
     }
-    if (this.phase === "explore") this.hud.setArrowTarget(this.nextUnfoundClue())
+    if (this.phase === "explore" || this.phase === "inspect") this.hud.setArrowTarget(this.nextUnfoundClue())
   }
 
   // ── Start ────────────────────────────────────────────────────────────────────
@@ -335,8 +314,8 @@ export class CaseRoomMain extends BaseScriptComponent {
   // ── Clues ────────────────────────────────────────────────────────────────────
 
   private onClueHover(c: CaseRoomClue, hovering: boolean): void {
-    if (this.phase !== "explore") return
-    if (!hovering) {
+    if (this.phase !== "explore" && this.phase !== "inspect") return
+    if (!hovering || c === this.inspecting) {
       this.clueTag.hideTag()
       return
     }
@@ -345,87 +324,35 @@ export class CaseRoomMain extends BaseScriptComponent {
     this.clueTag.showTag(c.info.name, pos, faceTowardYaw(pos, this.camT.getWorldPosition()))
   }
 
+  /**
+   * A clue was pinched. It stays where it lies and its description opens just above it. If another
+   * clue's description is still open, that one closes first and counts exactly as if Close was pressed,
+   * so the player can go from clue to clue without closing each one.
+   */
   private onCluePressed(c: CaseRoomClue): void {
+    if (this.phase === "inspect") {
+      if (c === this.inspecting) return
+      this.closeInspect()
+      if ((this.phase as Phase) !== "explore") return // that close found the 5th clue: the suspects come next
+    }
     if (this.phase !== "explore") return
     this.phase = "inspect"
     this.inspecting = c
     this.clueTag.hideTag()
-    this.hud.setVisible(false) // the held clue and its panels would overlap the counter
-    for (const k of this.clues) k.setInteractive(false)
-    c.setGlowMode("off") // the halo is wider than the clue; in the hands it would only crowd the view
-
-    const eye = this.camT.getWorldPosition()
-    if (c.info.inPlace) {
-      this.describeInPlace(c, eye)
-      return
-    }
-    const scale = Math.min(2, this.inspectMaxSizeCm / Math.max(1, c.maxDimensionCm))
-    const size = c.sizeCmUpright.uniformScale(scale)
-    const hold = this.fitInspect(eye, size)
-    const from = c.getSceneObject().getTransform().getWorldPosition().sub(eye).normalize()
-    const turnDeg = Math.acos(Math.max(-1, Math.min(1, from.dot(hold.pos.sub(eye).normalize())))) / DEG
-    const duration = Math.max(0.6, Math.min(2.2, turnDeg / this.inspectRiseDegPerSec))
-    c.moveTo(
-      hold.pos,
-      hold.rot,
-      this.inspectMaxSizeCm * hold.k,
-      2 * hold.k,
-      duration,
-      () => {
-        const t = this.inspectPanel.getSceneObject().getTransform()
-        t.setWorldPosition(hold.pos)
-        t.setWorldRotation(hold.rot)
-        t.setWorldScale(vec3.one().uniformScale(hold.k))
-        this.inspectPanel.layoutFor(size.x, size.y)
-        this.inspectPanel.show(c.info.name, c.info.description)
-      },
-      eye,
-    )
-    this.log(`inspect ${c.info.id}: ${hold.dist.toFixed(1)} cm, scale ${hold.k.toFixed(2)}, rise ${duration.toFixed(2)} s`)
+    c.setInteractive(false) // the other clues stay pinchable
+    c.setGlowMode("off") // the halo is wider than the clue and would sit behind the description
+    this.describeInPlace(c, this.camT.getWorldPosition())
   }
 
   /**
-   * Where the inspected clue goes: in the direction the player faces, a little below eye level, at the
-   * nearest distance (inspectDistanceCm..inspectMaxDistanceCm) where the clue + description + buttons
-   * fill at most inspectViewFill of the camera's view, centered in it; shrunk (k < 1) if even the
-   * farthest distance is not enough. `pos`/`rot` are the clue's (and the inspect panel root's) pose.
-   */
-  private fitInspect(eye: vec3, clueSizeCm: vec3): {pos: vec3; rot: quat; k: number; dist: number} {
-    const fwd = flatForward(this.camT)
-    const pitch = -Math.atan2(this.inspectDropCm, this.inspectDistanceCm)
-    const dir = fwd.uniformScale(Math.cos(pitch)).add(new vec3(0, Math.sin(pitch), 0))
-    const rot = quat.lookAt(dir.uniformScale(-1), vec3.up())
-    const r = this.inspectPanel.groupRect(clueSizeCm.x, clueSizeCm.y)
-    const halfW = (r.max.x - r.min.x) / 2
-    const halfH = (r.max.y - r.min.y) / 2
-    const tanH = Math.tan(this.cam.fov / 2) * this.cam.aspect * this.inspectViewFill
-    // Vertically the group must also fit a level (resting) head, with its center `pitch` below eye level.
-    const tanV = Math.tan(Math.max(0.01, Math.atan(Math.tan(this.cam.fov / 2) * this.inspectViewFill) + pitch))
-    const need = Math.max(halfW / tanH, halfH / tanV)
-    const dist = Math.max(this.inspectDistanceCm, Math.min(this.inspectMaxDistanceCm, need))
-    const k = Math.min(1, (dist * tanH) / halfW, (dist * tanV) / halfH)
-    this.log(
-      `fit: clue ${clueSizeCm.x.toFixed(1)}x${clueSizeCm.y.toFixed(1)} cm, group x ${r.min.x.toFixed(1)}..${r.max.x.toFixed(1)} ` +
-        `y ${r.min.y.toFixed(1)}..${r.max.y.toFixed(1)} cm, needs ${need.toFixed(1)} cm`,
-    )
-    // Put the group's center (not the clue's) on the line of sight.
-    const cx = ((r.min.x + r.max.x) / 2) * k
-    const cy = ((r.min.y + r.max.y) / 2) * k
-    const pos = eye
-      .add(dir.uniformScale(dist))
-      .sub(rot.multiplyVec3(vec3.right()).uniformScale(cx))
-      .sub(rot.multiplyVec3(vec3.up()).uniformScale(cy))
-    return {pos, rot, k, dist}
-  }
-
-  /**
-   * A clue that is not picked up (footprints): it stays where it is, and its name, description and a
-   * Close button appear just above it as the player sees it (bottom edge inPlaceGapDeg above the clue's
-   * highest visible point, so the panel never covers it), facing the player, at the same apparent size
-   * as a clue held at inspectDistanceCm (shrunk if that would overfill the view of a player looking at it).
+   * The clue stays where it is, and its name, description and buttons appear just above it as the player
+   * sees it (bottom edge inPlaceGapDeg above the clue's highest visible point, so they never cover it),
+   * facing the player, at the same apparent size as at inspectDistanceCm (shrunk if that would overfill
+   * the view of a player looking at them).
    */
   private describeInPlace(c: CaseRoomClue, eye: vec3): void {
-    const r = this.inspectPanel.groupRectInPlace()
+    const withFlip = !c.info.noFlip
+    const r = this.inspectPanel.groupRect(withFlip)
     const halfW = (r.max.x - r.min.x) / 2
     const halfH = (r.max.y - r.min.y) / 2
     const tanH = Math.tan(this.cam.fov / 2) * this.cam.aspect * this.inspectViewFill
@@ -453,42 +380,41 @@ export class CaseRoomMain extends BaseScriptComponent {
     t.setWorldPosition(pos)
     t.setWorldRotation(rot)
     t.setWorldScale(vec3.one().uniformScale(k))
-    this.inspectPanel.layoutInPlace()
-    this.inspectPanel.show(c.info.name, c.info.description, true)
+    this.inspectPanel.layout(withFlip)
+    this.inspectPanel.show(c.info.name, c.info.description, withFlip)
     this.log(`describe ${c.info.id} in place: ${dist.toFixed(1)} cm away, scale ${k.toFixed(2)}, ${(lift / DEG).toFixed(1)} deg above it`)
   }
 
   private onFlip(): void {
     const c = this.inspecting
-    if (this.phase !== "inspect" || !c || c.info.inPlace) return
+    if (this.phase !== "inspect" || !c || c.info.noFlip) return
     c.flip(0.5)
     const back = c.info.backText
     this.inspectPanel.setBackText(c.isFlipped ? (back ? TEXT.backPrefix + back : TEXT.nothingOnBack) : "")
     this.log(`flip ${c.info.id} -> ${c.isFlipped ? "back" : "front"}`)
   }
 
-  private onPutBack(): void {
+  /** Close the open description (Close button, or another clue pinched): the clue counts once, the first time. */
+  private closeInspect(): void {
     const c = this.inspecting
     if (this.phase !== "inspect" || !c) return
     this.inspecting = null
     this.inspectPanel.hide()
+    c.unflip()
     const firstTime = !c.inspected
-    c.returnToRest(c.info.inPlace ? 0.05 : 0.6, () => {
-      c.markInspected()
-      this.hud.setVisible(true)
-      if (firstTime) {
-        this.found++
-        this.hud.setText(counterText(this.found))
-        this.hud.pulse()
-      }
-      this.log(`put back ${c.info.id}; found ${this.found}/${TOTAL_CLUES}`)
-      if (this.found >= TOTAL_CLUES) {
-        this.onAllFound()
-      } else {
-        this.phase = "explore"
-        for (const k of this.clues) k.setInteractive(true)
-      }
-    })
+    c.markInspected()
+    c.setInteractive(true)
+    if (firstTime) {
+      this.found++
+      this.hud.setText(counterText(this.found))
+      this.hud.pulse()
+    }
+    this.log(`close ${c.info.id}; found ${this.found}/${TOTAL_CLUES}`)
+    if (this.found >= TOTAL_CLUES) {
+      this.onAllFound()
+    } else {
+      this.phase = "explore"
+    }
   }
 
   /** The uninspected clue closest to where the player is looking (for the arrow). */
@@ -498,7 +424,7 @@ export class CaseRoomMain extends BaseScriptComponent {
     let best: vec3 | null = null
     let bestDot = -2
     for (const c of this.clues) {
-      if (c.inspected) continue
+      if (c.inspected || c === this.inspecting) continue
       const d = c.restPosition.sub(eye).normalize()
       const dot = d.dot(look)
       if (dot > bestDot) {

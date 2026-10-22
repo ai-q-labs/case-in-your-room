@@ -22,8 +22,8 @@ type GlowMode = "off" | "faint" | "hover"
  * CaseRoomClue — one clue placed in the room (memo, footprints, clock, glass, photo).
  *
  * Owns: its code-authored geometry, its pinch target (collider + SIK Interactable on this
- * unit-scale wrapper), its glow, and its pose animations (reveal, come to hands, flip, put back,
- * gather for the replay). The wrapper's authored position is the clue's place in the room.
+ * unit-scale wrapper), its glow, and its pose animations (reveal, flip where it lies, gather for the
+ * replay and fly back). The wrapper's authored position is the clue's place in the room.
  * Emits: onPressed (pinch released on it), onHoverChanged (hand ray in/out).
  * Must not: count clues, decide game flow, or create UI text (the main script and UI modules do).
  * Size note: ~410 lines because the five clue geometries live here; candidate split for the detail
@@ -249,18 +249,35 @@ export class CaseRoomClue extends BaseScriptComponent {
     this.tweenTo(this.restWorldPos, this.restWorldRot, this.restPivotRot, 1, duration, done)
   }
 
-  /** Spin 180 degrees around the vertical axis to show the other side. */
+  /**
+   * Turn the clue over where it lies (180 degrees around its own upright axis) to show the other side,
+   * or back again. On the way it lifts off its face (out of the desk, chair or wall) by half its width,
+   * so it never sinks into what it rests on, and lands back in its place.
+   */
   flip(duration: number = 0.5): void {
     const pt = this.pivot.getTransform()
     const from = pt.getLocalRotation()
-    const to = (this.flipped ? quat.quatIdentity() : quat.angleAxis(Math.PI, vec3.up()))
+    const to = this.flipped ? this.restPivotRot : this.restPivotRot.multiply(quat.angleAxis(Math.PI, vec3.up()))
+    const lift = this.restPivotRot.multiplyVec3(vec3.forward()).uniformScale(this.sizeCm.x / 2 + 1)
     this.flipped = !this.flipped
     if (this.cancelFlip) this.cancelFlip()
     this.cancelFlip = animate({
       duration,
       easing: "ease-in-out-cubic",
-      update: (k: number) => pt.setLocalRotation(quat.slerp(from, to, k)),
+      update: (k: number) => {
+        pt.setLocalRotation(quat.slerp(from, to, k))
+        pt.setLocalPosition(lift.uniformScale(Math.sin(Math.PI * k)))
+      },
+      ended: () => {
+        this.cancelFlip = null
+        pt.setLocalPosition(vec3.zero())
+      },
     })
+  }
+
+  /** Turn back to the front if flipped (when its description closes). */
+  unflip(duration: number = 0.3): void {
+    if (this.flipped) this.flip(duration)
   }
 
   get isFlipped(): boolean {
@@ -303,6 +320,8 @@ export class CaseRoomClue extends BaseScriptComponent {
     const path = around ? this.orbitPath(around, p0, pos) : (k: number) => vec3.lerp(p0, pos, k)
     if (this.cancelMove) this.cancelMove()
     if (this.cancelFlip) this.cancelFlip()
+    this.cancelFlip = null
+    pt.setLocalPosition(vec3.zero())
     this.cancelMove = animate({
       duration,
       easing: around ? "ease-in-out-sine" : "ease-in-out-cubic",

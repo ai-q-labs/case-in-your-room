@@ -28,7 +28,11 @@
   ExportUid: 00000000-0000-0000-0000-000000000000
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
+    aheadDeg: false
     arrowSizeCm: false
+    behindDeg: false
+    hysteresisDeg: false
+    levelDeg: false
     pulseColor: false
     textBoost: false
     viewDistanceCm: false
@@ -44,16 +48,24 @@
     - viewDistanceCm: !<float> 100.000000
       textBoost: 2.600000
       arrowSizeCm: 3.600000
+      aheadDeg: !<float> 10.000000
+      behindDeg: !<float> 90.000000
+      levelDeg: !<float> 10.000000
+      hysteresisDeg: !<float> 2.000000
       pulseColor: !<Vec4> {x: 1.000000, y: 0.850000, z: 0.450000, w: 1.000000}
   ScriptTypes:
     -
       {}
   InputLines:
-    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomHudUI – clue counter and direction arrow</span>"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">CaseRoomHudUI – clue counter and direction arrows</span>"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"group_start", "label":"Settings"}'
     - '// @input float viewDistanceCm = 100 {"hint":"Viewing distance the text is sized for, in cm (match the lazy follow distance)", "widget":"slider", "min":50, "max":200, "step":1}'
     - '// @input float textBoost = 2.6 {"hint":"Text size multiplier; the brief asks for counter text about 3 cm tall", "widget":"slider", "min":1, "max":4, "step":0.05}'
     - '// @input float arrowSizeCm = 3.6 {"hint":"Arrow size in cm", "widget":"slider", "min":1, "max":8, "step":0.1}'
+    - '// @input float aheadDeg = 10 {"hint":"No left/right arrow while the clue is within this many degrees of straight ahead", "widget":"slider", "min":2, "max":30, "step":1}'
+    - '// @input float behindDeg = 90 {"hint":"Past this many degrees to the side the clue counts as behind you: the ring-shaped turn-around arrow", "widget":"slider", "min":60, "max":150, "step":1}'
+    - '// @input float levelDeg = 10 {"hint":"No up/down arrow while the clue is within this many degrees above or below where you look", "widget":"slider", "min":2, "max":30, "step":1}'
+    - '// @input float hysteresisDeg = 2 {"hint":"Dead band in degrees around each threshold, so an arrow does not flicker when the head rests on one", "widget":"slider", "min":0, "max":6, "step":0.5}'
     - '// @input vec4 pulseColor = "{1.0,0.85,0.45,1}" {"hint":"Color the counter flashes when it goes up", "widget":"color"}'
     - '// @ui {"widget":"group_end"}'

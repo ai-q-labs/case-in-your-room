@@ -100,20 +100,28 @@ export class Criterion1OpeningScenario extends Scenario {
       ui.between(`gap between ${order[k - 1].so} and ${order[k].so} lighting up (s)`, order[k].t - order[k - 1].t, 0.3, 1.0)
     }
 
-    // "0 / 5" with an arrow at the bottom of the view.
+    // "0 / 5" with an arrow at the bottom of the view. The arrows come in two: left/right and up/down
+    // (devpost/design-brief.md, "Changes during the build"). At Start they lead to the stopped clock, high
+    // on the front wall, so the up arrow shows.
+    await nextFrame()
     await nextFrame()
     expect(ui.isShown("CounterPanel"), "counter panel shown").toBe(true)
     expect(ui.text("CounterText"), "counter text").toBe(counter(0))
-    expect(ui.isShown("DirectionArrow"), "direction arrow shown").toBe(true)
+    const target = ui.hud.target
+    expect(!!target && CLUES.some((c) => ui.clue(c.so).restPosition.distance(target) < 0.1), "arrows lead to a clue not yet found").toBe(true)
+    const shown = (["TurnArrow", "TiltArrow"] as ("TurnArrow" | "TiltArrow")[]).filter((n) => ui.arrowShown(n))
+    expect(shown.length > 0, `an arrow is shown (left/right "${ui.hud.turnCue}", up/down "${ui.hud.tiltCue}")`).toBe(true)
+    const problems = ui.arrowProblems("at Start")
+    expect(problems.length, `arrow problems: ${problems.join("; ")}`).toBe(0)
     const cs = ui.screen(ui.world("CounterText"))
-    const as = ui.screen(ui.world("DirectionArrow"))
     expect(ui.inView(ui.world("CounterText")), "counter in view").toBe(true)
-    expect(ui.inView(ui.world("DirectionArrow")), "arrow in view").toBe(true)
     ui.between("counter screen y (bottom half of the view)", cs.y, 0.5, 1.0)
-    ui.between("arrow screen y (bottom half of the view)", as.y, 0.5, 1.0)
-    ui.near("arrow sits next to the counter (screen y difference)", as.y - cs.y, 0, 0.05)
-    const arrowErr = Math.min(...CLUES.map((c) => ui.arrowErrorDeg(ui.clue(c.so).restPosition)))
-    ui.between("arrow points at a clue not yet found (angle error, deg)", arrowErr, 0, 3)
-    ui.log(`hud ok: counter screen=(${cs.x.toFixed(3)},${cs.y.toFixed(3)}) arrow screen=(${as.x.toFixed(3)},${as.y.toFixed(3)}) arrowErr=${arrowErr.toFixed(2)}`)
+    for (const n of shown) {
+      const as = ui.screen(ui.world(n))
+      expect(ui.inView(ui.world(n)), `${n} in view`).toBe(true)
+      ui.between(`${n} screen y (bottom half of the view)`, as.y, 0.5, 1.0)
+      ui.near(`${n} sits next to the counter (screen y difference)`, as.y - cs.y, 0, 0.05)
+    }
+    ui.log(`hud ok: counter screen=(${cs.x.toFixed(3)},${cs.y.toFixed(3)}); arrows "${ui.hud.turnCue}" / "${ui.hud.tiltCue}" (target ${ui.hud.targetYawDeg.toFixed(1)} deg right, ${ui.hud.targetPitchDeg.toFixed(1)} deg up)`)
   }
 }

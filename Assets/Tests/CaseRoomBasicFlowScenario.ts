@@ -8,7 +8,7 @@ import {findSceneObjectByName, sleep} from "Leaf.lspkg/Utils/common/Utils"
 /**
  * Basic-flow check for "Case in Your Room" (build stage 1): drives the whole game once with
  * LEAF's scripted SIK interactor, by SceneObject name, and logs each step.
- * Start -> inspect/flip/put back all 5 clues -> 2 wrong accusations -> replay -> truth.
+ * Start -> inspect/flip/close all 5 clues -> 2 wrong accusations -> replay -> truth.
  * Per-criterion tests come in a later stage; this one proves the flow end to end.
  * Parameter stop_after ("none" | "start" | "inspect_memo" | "suspects" | "select" | "gather") ends the run
  * early and leaves the Lens in that state, for screenshots while building.
@@ -35,7 +35,7 @@ export class CaseRoomBasicFlowScenario extends Scenario {
     await sleep(2600) // let all 5 clues light up (the last one at 2.35 s after Start)
     if (stopAfter === "start") return
 
-    // Back text after Flip; null = described in place (footprints: no Flip, a Close button instead).
+    // Back text after Flip; null = nothing to turn over (footprints: no Flip, only Close).
     const clues: [string, string | null][] = [
       ["Clue_Memo", "10:40"],
       ["Clue_Footprints", null],
@@ -46,23 +46,20 @@ export class CaseRoomBasicFlowScenario extends Scenario {
     for (let i = 0; i < clues.length; i++) {
       const [name, back] = clues[i]
       await this.tap(name)
-      // The clue comes to the hands at a followable pace (up to 2.2 s for the lowest clues).
-      for (let waited = 0; waited < 3500 && !this.isShown("InspectInfo"); waited += 100) await sleep(100)
+      // The clue stays where it is; its description opens just above it.
+      for (let waited = 0; waited < 2000 && !this.isShown("InspectInfo"); waited += 100) await sleep(100)
       expect(this.isShown("InspectInfo")).toBe(true)
       expect(this.text("InspectDescriptionText").length).toBeGreaterThan(5)
       if (stopAfter === "inspect_memo") return
-      if (back === null) {
-        expect(this.isShown("FlipButton")).toBe(false)
-        expect(this.isShown("CloseButton")).toBe(true)
-        await this.tap("CloseButton")
-      } else {
-        expect(this.isShown("FlipButton")).toBe(true)
+      expect(this.isShown("CloseButton")).toBe(true)
+      expect(this.isShown("FlipButton")).toBe(back !== null)
+      if (back !== null) {
         await this.tap("FlipButton")
         await sleep(700)
         expect(this.text("InspectBackText").includes(back)).toBe(true)
-        await this.tap("PutBackButton")
       }
-      await sleep(1000)
+      await this.tap("CloseButton")
+      await sleep(500)
       expect(this.text("CounterText")).toBe(`${i + 1} / 5`)
       this.log(`${name} ok -> ${this.text("CounterText")}`)
     }

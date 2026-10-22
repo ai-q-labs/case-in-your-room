@@ -17,22 +17,23 @@ export class Criterion3SuspectsScenario extends Scenario {
     await sleep(1500)
     await ui.startGame()
 
-    // ── Every clue: the arrow points at a clue not yet found; inspect and put back ──
+    // ── Every clue: the arrows lead to a clue not yet found; inspect and close ──
     for (let i = 0; i < CLUES.length; i++) {
       const c = CLUES[i]
       await sleep(100) // let the arrow update after the last put back
       expect(ui.counterShown(), `counter before ${c.so}`).toBe(counter(i))
-      expect(ui.isShown("DirectionArrow"), `arrow shown before ${c.so}`).toBe(true)
+      const target = ui.hud.target
       const unfound = CLUES.filter((k) => !ui.clue(k.so).inspected)
-      const err = Math.min(...unfound.map((k) => ui.arrowErrorDeg(ui.clue(k.so).restPosition)))
-      ui.between(`arrow points at a clue not yet found before ${c.so} (deg)`, err, 0, 3)
+      expect(!!target && unfound.some((k) => ui.clue(k.so).restPosition.distance(target) < 0.1), `arrows lead to a clue not yet found before ${c.so}`).toBe(true)
+      const problems = ui.arrowProblems(`before ${c.so}`)
+      expect(problems.length, `arrow problems: ${problems.join("; ")}`).toBe(0)
       if (i < CLUES.length - 1) {
-        await ui.inspectAndPutBack(c.so)
+        await ui.inspectAndClose(c.so)
         continue
       }
       // Last clue: watch the counter text change.
       await ui.inspect(c.so)
-      await ui.tap("PutBackButton")
+      await ui.tap("CloseButton")
       const seen: string[] = []
       let arrowOffWhen5 = false
       await ui.waitUntil(
@@ -41,7 +42,7 @@ export class Criterion3SuspectsScenario extends Scenario {
           const t = ui.counterShown()
           if (t && seen[seen.length - 1] !== t) {
             seen.push(t)
-            if (t === counter(5)) arrowOffWhen5 = !ui.so("DirectionArrow").enabled
+            if (t === counter(5)) arrowOffWhen5 = !ui.arrowShown("TurnArrow") && !ui.arrowShown("TiltArrow")
           }
           return t === BRIEF.suspectsAppeared
         },
@@ -88,7 +89,7 @@ export class Criterion3SuspectsScenario extends Scenario {
 
     // ── Counter and arrow gone ──
     expect(ui.isShown("CounterPanel"), "counter hidden").toBe(false)
-    expect(ui.so("DirectionArrow").enabled, "arrow hidden").toBe(false)
+    expect(ui.arrowShown("TurnArrow") || ui.arrowShown("TiltArrow"), "arrows hidden").toBe(false)
     ui.log(`line-up ok: bearing=${ui.bearingDeg(lineup).toFixed(2)} dist=${ui.horizontalDistance(lineup, ui.eye).toFixed(1)} bearings=${bearings.map((b) => b.toFixed(1)).join("/")}`)
   }
 }

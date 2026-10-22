@@ -5,6 +5,7 @@ import {findSceneObjectByName, nextFrame, sleep} from "Leaf.lspkg/Utils/common/U
 import {Interactable} from "SpectaclesInteractionKit.lspkg/Components/Interaction/Interactable/Interactable"
 import WorldCameraFinderProvider from "SpectaclesInteractionKit.lspkg/Providers/CameraProvider/WorldCameraFinderProvider"
 import {CaseRoomClue} from "../Scripts/CaseRoomClue"
+import {CaseRoomHudUI} from "../Scripts/CaseRoomHudUI"
 import {CaseRoomMain} from "../Scripts/CaseRoomMain"
 import {CaseRoomSuspect} from "../Scripts/CaseRoomSuspect"
 
@@ -21,13 +22,18 @@ export const BRIEF = {
   start: "Start",
   lookAround: "Look around you",
   flip: "Flip",
-  putBack: "Put back",
   nothingOnBack: "Nothing on the back.",
   suspectsAppeared: "The suspects have appeared",
   accuse: "Accuse this person",
   wrong: "That doesn't match the clues",
   truth: "Sensing she was about to be cut out of the will, Nora Vale put something in his tea.",
 }
+
+/**
+ * Not in the brief (devpost/design-brief.md, "Changes during the build"): every clue is now described
+ * where it lies, so the second button is "Close" instead of "Put back".
+ */
+export const CLOSE = "Close"
 
 export function counter(n: number): string {
   return `${n} / 5`
@@ -112,7 +118,7 @@ const RAD2DEG = 180 / Math.PI
 /**
  * Shared LEAF helper for "Case in Your Room": scripted SIK interactions by SceneObject name,
  * scene/state lookups, camera-relative geometry, and the setup steps every scenario reuses
- * (Start, inspect / flip / put back a clue, find all clues, reach the suspect line-up, accuse).
+ * (Start, inspect / flip / close a clue, find all clues, reach the suspect line-up, accuse).
  */
 export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
   private cache = new Map<string, SceneObject>()
@@ -291,25 +297,80 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     return 2 * Math.acos(Math.min(1, Math.abs(a.dot(b)))) * RAD2DEG
   }
 
+  get hud(): CaseRoomHudUI {
+    return this.main.hud
+  }
+
+  /** Whether an arrow icon is drawn (the arrows hide by turning off their Image, keeping their slot). */
+  arrowShown(name: "TurnArrow" | "TiltArrow"): boolean {
+    const o = this.so(name)
+    const img = o.getComponent("Component.Image") as Image
+    return o.isEnabledInHierarchy && !!img && img.enabled
+  }
+
+  /** Name of the texture an arrow icon shows. */
+  arrowIcon(name: "TurnArrow" | "TiltArrow"): string {
+    return (this.so(name).getComponent("Component.Image") as Image).mainPass.baseTex.name
+  }
+
   /**
-   * Angle in degrees between where the arrow icon points (its +Y, projected onto the view plane)
-   * and the on-screen direction toward `target` (sideways toward the shorter turn when behind).
+   * Check the two arrows against the arrows' target, measured here independently of the HUD:
+   * left/right from the signed bearing (straight arrow ahead of 90 degrees, ring-shaped turn-around arrow
+   * behind), up/down from the target's elevation minus the head's pitch. A cue is only checked when the
+   * angle is more than `margin` degrees from a threshold (10 and 90 degrees; the HUD has a dead band there).
+   * Also checks what is drawn: the icon, and the straight arrows pointing the right way on the counter panel
+   * (measured in the panel's own plane: the panel faces the head the preview tracks, which a test that holds
+   * the head itself does not move).
+   * Returns the problems found ([] = all good).
    */
-  arrowErrorDeg(target: vec3): number {
-    const camT = this.cam.getTransform()
-    const up = this.so("DirectionArrow").getTransform().up
-    const a1 = Math.atan2(up.dot(camT.right), up.dot(camT.up))
-    const to = target.sub(camT.getWorldPosition())
-    let dx = to.dot(camT.right)
-    let dy = to.dot(camT.up)
-    if (to.dot(camT.back) < 0) {
-      dy = 0
-      dx = dx >= 0 ? 1 : -1
+  arrowProblems(label: string, margin: number = 3): string[] {
+    const out: string[] = []
+    const target = this.hud.target
+    if (!target) return [`${label}: arrows have no target`]
+    const panelT = this.so("CounterPanel").getTransform()
+    const yaw = this.signedBearingDeg(target)
+    const to = target.sub(this.eye)
+    const elev = Math.atan2(to.y, Math.sqrt(to.x * to.x + to.z * to.z)) * RAD2DEG
+    const pitch = elev - Math.asin(Math.max(-1, Math.min(1, this.look.y))) * RAD2DEG
+    const turn = this.hud.turnCue
+    const tilt = this.hud.tiltCue
+    const a = Math.abs(yaw)
+    const near = (x: number, t: number) => Math.abs(x - t) <= margin
+    let wantTurn: string | null = null
+    if (!near(a, 10) && !near(a, 90)) {
+      if (a < 10) wantTurn = "none"
+      else if (a < 90) wantTurn = yaw > 0 ? "right" : "left"
+      else if (a < 180 - 10) wantTurn = yaw > 0 ? "turn-right" : "turn-left"
+      else wantTurn = "turn-*" // straight behind: either way is as short
     }
-    const a2 = Math.atan2(dx, dy)
-    let d = Math.abs(a1 - a2) * RAD2DEG
-    if (d > 180) d = 360 - d
-    return d
+    if (wantTurn === "turn-*" ? turn !== "turn-left" && turn !== "turn-right" : wantTurn !== null && turn !== wantTurn) {
+      out.push(`${label}: left/right arrow "${turn}", expected "${wantTurn}" (target ${yaw.toFixed(1)} deg to the right)`)
+    }
+    let wantTilt: string | null = null
+    if (!near(Math.abs(pitch), 10)) wantTilt = Math.abs(pitch) < 10 ? "none" : pitch > 0 ? "up" : "down"
+    if (wantTilt !== null && tilt !== wantTilt) {
+      out.push(`${label}: up/down arrow "${tilt}", expected "${wantTilt}" (target ${pitch.toFixed(1)} deg above the gaze)`)
+    }
+    // What is drawn.
+    if (this.arrowShown("TurnArrow") !== (turn !== "none")) out.push(`${label}: left/right arrow drawn ${this.arrowShown("TurnArrow")} for "${turn}"`)
+    if (this.arrowShown("TiltArrow") !== (tilt !== "none")) out.push(`${label}: up/down arrow drawn ${this.arrowShown("TiltArrow")} for "${tilt}"`)
+    if (turn === "left" || turn === "right") {
+      const px = this.so("TurnArrow").getTransform().right.dot(panelT.right) // arrow_forward points along +X
+      if (this.arrowIcon("TurnArrow") !== "arrow_forward" || (turn === "right" ? px < 0.9 : px > -0.9)) {
+        out.push(`${label}: "${turn}" drawn as ${this.arrowIcon("TurnArrow")} pointing ${px.toFixed(2)} along the panel's right`)
+      }
+    }
+    if (turn === "turn-left" || turn === "turn-right") {
+      const want = turn === "turn-left" ? "360" : "360_mirrored"
+      if (this.arrowIcon("TurnArrow") !== want) out.push(`${label}: "${turn}" drawn as ${this.arrowIcon("TurnArrow")} (expected the ring arrow ${want})`)
+    }
+    if (tilt !== "none") {
+      const py = this.so("TiltArrow").getTransform().up.dot(panelT.up) // arrow_upward points along +Y
+      if (this.arrowIcon("TiltArrow") !== "arrow_upward" || (tilt === "up" ? py < 0.9 : py > -0.9)) {
+        out.push(`${label}: "${tilt}" drawn as ${this.arrowIcon("TiltArrow")} pointing ${py.toFixed(2)} along the panel's up`)
+      }
+    }
+    return out
   }
 
   /** World-space far end of a thread (its mesh is a unit box from local z=0 to z=1). */
@@ -362,50 +423,51 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     this.log("started")
   }
 
-  /** Clues described where they lie instead of coming to the hands (no Flip; a Close button). */
-  isInPlace(clueSo: string): boolean {
-    return !!this.clue(clueSo).info.inPlace
+  /** Clues with something to turn over get "Flip" next to "Close" (all but the footprints). */
+  hasFlip(clueSo: string): boolean {
+    return !this.clue(clueSo).info.noFlip
   }
 
-  /** Pinch a clue and wait until its description and buttons show (held, or in place with Close). */
+  /** Pinch a clue and wait until its description and buttons show just above it. */
   async inspect(clueSo: string): Promise<void> {
     await this.tap(clueSo)
-    const inPlace = this.isInPlace(clueSo)
+    const flip = this.hasFlip(clueSo)
     await this.waitUntil(
-      `${clueSo} ${inPlace ? "described in place with Close" : "held with description and buttons"}`,
+      `${clueSo} described with ${flip ? "Flip and Close" : "Close only"}`,
       () =>
         this.phase === "inspect" &&
         this.isShown("InspectInfo") &&
-        (inPlace ? this.isShown("CloseButton") : this.isShown("FlipButton") && this.isShown("PutBackButton")),
-      4000, // the rise takes up to 2.2 s (followable pace)
+        this.isShown("CloseButton") &&
+        this.isShown("FlipButton") === flip,
+      2000,
     )
   }
 
-  /** Press Flip and wait for the back text and the 0.5 s spin. */
+  /** Press Flip and wait for the back text and the 0.5 s turn. */
   async flip(): Promise<void> {
     await this.tap("FlipButton")
     await this.waitUntil("back text after Flip", () => this.text("InspectBackText") !== "", 2000)
     await sleep(650)
   }
 
-  /** Press Put back (or Close, for a clue described in place) and wait until phase leaves "inspect". */
-  async putBack(): Promise<void> {
-    await this.tap(this.isShown("CloseButton") ? "CloseButton" : "PutBackButton")
-    await this.waitUntil("clue back in its place", () => this.phase !== "inspect", 3000)
+  /** Press Close and wait until phase leaves "inspect". */
+  async close(): Promise<void> {
+    await this.tap("CloseButton")
+    await this.waitUntil("description closed", () => this.phase !== "inspect", 2000)
   }
 
-  async inspectAndPutBack(clueSo: string): Promise<void> {
+  async inspectAndClose(clueSo: string): Promise<void> {
     const before = this.main.foundCount
     await this.inspect(clueSo)
-    await this.putBack()
-    expect(this.main.foundCount, `found count after putting back ${clueSo}`).toBe(before + 1)
-    this.log(`${clueSo} put back -> ${this.text("CounterText")}`)
+    await this.close()
+    expect(this.main.foundCount, `found count after closing ${clueSo}`).toBe(before + 1)
+    this.log(`${clueSo} closed -> ${this.text("CounterText")}`)
   }
 
-  /** Inspect and put back every clue not yet inspected, in the brief's order. */
+  /** Inspect and close every clue not yet inspected, in the brief's order. */
   async findRemainingClues(): Promise<void> {
     for (const c of CLUES) {
-      if (!this.clue(c.so).inspected) await this.inspectAndPutBack(c.so)
+      if (!this.clue(c.so).inspected) await this.inspectAndClose(c.so)
     }
   }
 

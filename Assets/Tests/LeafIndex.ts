@@ -12,6 +12,8 @@ import {SuspectHitboxScenario} from "./SuspectHitboxScenario"
 import {StartLayoutScenario} from "./StartLayoutScenario"
 import {InspectFitScenario} from "./InspectFitScenario"
 import {InspectHoldScenario} from "./InspectHoldScenario"
+import {ArrowDirectionsScenario} from "./ArrowDirectionsScenario"
+import {SwitchClueScenario} from "./SwitchClueScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -63,6 +65,14 @@ export class LeafIndex extends BaseScriptComponent {
     {
       id: "inspect_fit",
       typename: InspectFitScenario.getTypeName(),
+    },
+    {
+      id: "arrow_directions",
+      typename: ArrowDirectionsScenario.getTypeName(),
+    },
+    {
+      id: "switch_clue",
+      typename: SwitchClueScenario.getTypeName(),
     },
     {
       id: "inspect_hold",
