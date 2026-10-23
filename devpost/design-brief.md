@@ -108,6 +108,7 @@ Each one can be checked in Lens Studio's preview.
 - Counter just below the line of sight at about 1 m with 3 cm text: whether it is noticed and readable on real glasses is feel unproven.
 - The clock and the suspects at about 2 m are past the display's focus plane (about 1 m); readability of their names and text on real glasses is feel unproven.
 - Translucent figures, glowing threads and footprints on an additive display: they need light, bright colors, since dark shades turn transparent.
+- Pressing "Flip" and "Close" by touching them with a finger: the description group opens 50 cm in front, and LEAF's IK arm model finds "Flip" 1.4 cm beyond its arm's comfortable reach. Pressing them with the hand's ray works (LEAF test `ik_inspect_reach`), so the layout stays. In the preview they were pressed with the mouse; whether a finger reaches them comfortably is not yet checked on real glasses (feel unproven).
 - Before publishing, search the title "Case in Your Room" and the 3 names (Edgar Hale / Nora Vale / Iris Bell) to make sure they don't match existing works or characters.
 
 ## Build notes for CLAD
