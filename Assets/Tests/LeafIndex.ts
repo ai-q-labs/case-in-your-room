@@ -19,6 +19,7 @@ import {LineupFitScenario} from "./LineupFitScenario"
 import {ReplayModelScenario} from "./ReplayModelScenario"
 import {LineupFacingScenario} from "./LineupFacingScenario"
 import {ReplayViewScenario} from "./ReplayViewScenario"
+import {DemoPlaythroughScenario} from "./DemoPlaythroughScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -106,6 +107,13 @@ export class LeafIndex extends BaseScriptComponent {
       typename: ReplayViewScenario.getTypeName(),
       // Visual-check helper, not a pass/fail test: ends at the given caption while the replay goes on.
       parameters: {captions: "2"},
+    },
+    {
+      id: "demo_playthrough",
+      typename: DemoPlaythroughScenario.getTypeName(),
+      // Video helper, not a pass/fail test: plays the whole game at a viewer's pace for the demo recording.
+      // Log level ERROR keeps LEAF's on-screen log strip out of the recording.
+      parameters: {start: "hand", pace: "1", __leaf__log_level: "ERROR"},
     },
   ]
 }
