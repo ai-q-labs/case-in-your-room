@@ -80,7 +80,23 @@ export class StartLayoutScenario extends Scenario {
     // Exactly one clue in view at Start: the clock, and it is the first to light up, after the board has gone.
     expect(inView, "clues in view at Start").toBe(1)
     expect(this.inStartView(ui, ui.clue(IN_VIEW_AT_START).restPosition, eye, f), `${IN_VIEW_AT_START} in view at Start`).toBe(true)
-    const outside = ui.clue(IN_VIEW_AT_START).worldCorners().filter((p) => !this.inStartView(ui, p, eye, f)).length
+    // Each part's own box turned with it (a world-axis box around a turned clock is bigger than the clock).
+    const corners: vec3[] = []
+    const visit = (o: SceneObject) => {
+      if (o.name === "Glow") return
+      const v = o.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      if (v) {
+        const m = o.getTransform().getWorldTransform()
+        const lo = v.localAabbMin()
+        const hi = v.localAabbMax()
+        for (const x of [lo.x, hi.x]) for (const y of [lo.y, hi.y]) for (const z of [lo.z, hi.z]) corners.push(m.multiplyPoint(new vec3(x, y, z)))
+      }
+      for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
+    }
+    visit(ui.pivot(IN_VIEW_AT_START))
+    const top = Math.max(...corners.map((p) => Math.atan2(p.y - eye.y, new vec3(p.x - eye.x, 0, p.z - eye.z).dot(f)) * RAD2DEG))
+    ui.log(`${IN_VIEW_AT_START}: top edge ${top.toFixed(1)} deg above a level gaze (the view reaches ${((ui.cam.fov / 2) * RAD2DEG).toFixed(1)})`)
+    const outside = corners.filter((p) => !this.inStartView(ui, p, eye, f)).length
     expect(outside, `corners of ${IN_VIEW_AT_START} outside the view at Start (the whole clock is visible)`).toBe(0)
     expect(order[0], "first clue to light up").toBe(IN_VIEW_AT_START)
     expect(boardAtLit.get(IN_VIEW_AT_START), `opening board gone when ${IN_VIEW_AT_START} lights up`).toBe(false)

@@ -16,6 +16,8 @@ import {ArrowDirectionsScenario} from "./ArrowDirectionsScenario"
 import {SwitchClueScenario} from "./SwitchClueScenario"
 import {InspectViewsScenario} from "./InspectViewsScenario"
 import {LineupFitScenario} from "./LineupFitScenario"
+import {ReplayStripScenario} from "./ReplayStripScenario"
+import {ReplayViewScenario} from "./ReplayViewScenario"
 
 @component
 export class LeafIndex extends BaseScriptComponent {
@@ -85,10 +87,20 @@ export class LeafIndex extends BaseScriptComponent {
       typename: LineupFitScenario.getTypeName(),
     },
     {
+      id: "replay_strip",
+      typename: ReplayStripScenario.getTypeName(),
+    },
+    {
       id: "inspect_hold",
       typename: InspectHoldScenario.getTypeName(),
       // Visual-check helper, not a pass/fail test: opens one clue and keeps it open for a capture.
       parameters: {clue: "Clue_Footprints", hold_secs: "90"},
+    },
+    {
+      id: "replay_view",
+      typename: ReplayViewScenario.getTypeName(),
+      // Visual-check helper, not a pass/fail test: ends at the given caption while the replay goes on.
+      parameters: {captions: "2"},
     },
   ]
 }

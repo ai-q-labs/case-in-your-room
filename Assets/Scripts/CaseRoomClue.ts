@@ -215,6 +215,35 @@ export class CaseRoomClue extends BaseScriptComponent {
     return out
   }
 
+  /**
+   * A copy of how the clue looks, under `parent`: its meshes in their current colours and its glow shell,
+   * upright and facing +Z (as moveTo shows it), with no pinch target. The copy's root is unit scale; its
+   * child "Model" is scaled so the largest side is `sizeCm`. `glowScale` shrinks the glow shell (its fixed
+   * 3 cm margin is large on a small copy). Glow it with setGlow on the returned material.
+   */
+  makeCopy(parent: SceneObject, name: string, sizeCm: number, glowScale: number = 1): {root: SceneObject; glow: Material; color: vec3} {
+    const root = global.scene.createSceneObject(name)
+    root.setParent(parent)
+    const model = global.scene.createSceneObject("Model")
+    model.setParent(root)
+    model.getTransform().setLocalScale(vec3.one().uniformScale(sizeCm / Math.max(1, this.maxDimensionCm)))
+    let glow: Material = null
+    for (let i = 0; i < this.pivot.getChildrenCount(); i++) {
+      const src = this.pivot.getChild(i)
+      const v = src.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      if (!v) continue
+      const mat = v.mainMaterial.clone()
+      if (src.name === "Glow") {
+        glow = mat
+        setGlow(mat, this.glowColor, 0)
+      }
+      const st = src.getTransform()
+      const scale = src.name === "Glow" ? st.getLocalScale().uniformScale(glowScale) : st.getLocalScale()
+      addVisual(model, src.name, v.mesh, mat, st.getLocalPosition(), st.getLocalRotation(), scale)
+    }
+    return {root, glow, color: this.glowColor}
+  }
+
   /** Show the clue with a bright flash that settles into a faint glow. */
   reveal(): void {
     this.pivot.enabled = true

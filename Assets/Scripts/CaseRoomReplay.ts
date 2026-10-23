@@ -1,6 +1,7 @@
 import WorldCameraFinderProvider from "SpectaclesInteractionKit.lspkg/Providers/CameraProvider/WorldCameraFinderProvider"
 import animate from "SpectaclesInteractionKit.lspkg/Utils/animate"
 import {CaseRoomClue} from "./CaseRoomClue"
+import {CaseRoomReplayStrip} from "./CaseRoomReplayStrip"
 import {
   addVisual,
   DEG,
@@ -32,9 +33,12 @@ interface Thread {
 /**
  * CaseRoomReplay — the "one spatial moment": clues float up and gather in front of the player,
  * glowing threads converge on the named suspect, and (if right) the culprit's translucent figure
- * walks the room visiting the clues in the night's order, leaving glowing footprints.
+ * walks the room visiting the clues in the night's order, leaving glowing footprints. While she walks,
+ * the strip straight ahead (CaseRoomReplayStrip) shows the whole walk at a glance: small copies of the
+ * clues in her order, a small figure walking along them in step with her, each copy lighting up with the
+ * real clue, so nothing is missed without turning the head.
  *
- * Owns: threads, footprint trail and the walking figure (all MeshBuilder geometry) and their
+ * Owns: threads, footprint trail, the walking figure and the strip (all MeshBuilder geometry) and their
  * timing. Pushes captions out through callbacks; the main script decides what to show.
  * Must not: decide right/wrong, count accusations, or create UI text.
  */
@@ -84,6 +88,34 @@ export class CaseRoomReplay extends BaseScriptComponent {
   gatherHeightCm: number = 14
   @ui.group_end
 
+  @ui.separator
+  @ui.group_start("Strip straight ahead during the walk")
+  @input
+  @hint("Distance in front of the player of the row of small copies, in cm")
+  @widget(new SliderWidget(60, 200, 1))
+  stripDistanceCm: number = 120
+
+  @input
+  @hint("Height of the line the small figure walks on, relative to eye level, in cm (the captions sit below it)")
+  @widget(new SliderWidget(-30, 30, 0.5))
+  stripLineHeightCm: number = -4
+
+  @input
+  @hint("Largest side of each small copy of a clue, in cm")
+  @widget(new SliderWidget(3, 15, 0.5))
+  stripCopySizeCm: number = 7.5
+
+  @input
+  @hint("Centre-to-centre spacing of the small copies, in cm (keep the row inside the view)")
+  @widget(new SliderWidget(5, 20, 0.5))
+  stripSpacingCm: number = 10
+
+  @input
+  @hint("Height of the small walking figure, in cm")
+  @widget(new SliderWidget(4, 20, 0.5))
+  stripFigureHeightCm: number = 9
+  @ui.group_end
+
   private camT: Transform = null
   private boxMesh: RenderMesh
   private footMesh: RenderMesh
@@ -92,6 +124,7 @@ export class CaseRoomReplay extends BaseScriptComponent {
   private trailRoot: SceneObject
   private walker: SceneObject
   private walkerMat: Material
+  private strip: CaseRoomReplayStrip
 
   // Walk state
   private walking = false
@@ -100,6 +133,7 @@ export class CaseRoomReplay extends BaseScriptComponent {
   private dwell = 0
   private sinceStep = 0
   private stepSide = 1
+  private segmentLength = 1
   private hooks: WalkHooks = null
 
   onAwake(): void {
@@ -109,14 +143,19 @@ export class CaseRoomReplay extends BaseScriptComponent {
     this.trailRoot = this.child("FootprintTrail")
     this.walker = this.child("CulpritFigure")
     this.walkerMat = glowMaterial(this.figureColor, 0)
-    addVisual(this.walker, "Body", new MeshKit().lathe(FIGURE_PROFILE, 32).build(), this.walkerMat)
+    const figureMesh = new MeshKit().lathe(FIGURE_PROFILE, 32).build()
+    addVisual(this.walker, "Body", figureMesh, this.walkerMat)
     this.walker.enabled = false
+    this.strip = new CaseRoomReplayStrip(this.sceneObject, figureMesh, this.boxMesh, this.figureColor, this.footprintColor)
 
     this.createEvent("OnStartEvent").bind(() => {
       const cam = WorldCameraFinderProvider.getInstance().getComponent()
       this.camT = cam ? cam.getTransform() : null
     })
-    this.createEvent("UpdateEvent").bind(() => this.updateWalk())
+    this.createEvent("UpdateEvent").bind(() => {
+      this.updateWalk()
+      this.strip.update(getDeltaTime())
+    })
   }
 
   /**
@@ -171,6 +210,22 @@ export class CaseRoomReplay extends BaseScriptComponent {
   walk(stops: ReplayStop[], startFloor: vec3, roomCenterFloor: vec3, hooks: WalkHooks): void {
     this.hooks = hooks
     this.fadeThreads(0.9)
+    if (this.camT) {
+      // Built before the clues leave, so each copy starts where its clue gathered.
+      this.strip.show(
+        stops.map((s) => s.clue),
+        this.camT.getWorldPosition(),
+        flatForward(this.camT),
+        {
+          distanceCm: this.stripDistanceCm,
+          lineHeightCm: this.stripLineHeightCm,
+          copySizeCm: this.stripCopySizeCm,
+          spacingCm: this.stripSpacingCm,
+          figureHeightCm: this.stripFigureHeightCm,
+          startSizeCm: this.gatherSizeCm,
+        },
+      )
+    }
     for (const s of stops) s.clue.returnToRest(1.3)
     this.path = []
     for (const s of stops) {
@@ -183,6 +238,7 @@ export class CaseRoomReplay extends BaseScriptComponent {
     }
     this.path.push({pos: startFloor, stop: null})
     this.pathIndex = 0
+    this.segmentLength = Math.max(1, this.flatDistance(startFloor, this.path[0].pos))
     this.dwell = 0
     this.sinceStep = 0
     const wt = this.walker.getTransform()
@@ -212,13 +268,18 @@ export class CaseRoomReplay extends BaseScriptComponent {
     if (dist <= step) {
       wt.setWorldPosition(target)
       const node = this.path[this.pathIndex]
+      const reached = this.pathIndex
       this.pathIndex++
+      if (this.pathIndex < this.path.length) this.segmentLength = Math.max(1, this.flatDistance(target, this.path[this.pathIndex].pos))
       if (node.stop) {
         node.stop.clue.flashGlow()
+        this.strip.arrive(reached)
         this.hooks.onCaption(node.stop.caption)
         this.dwell = this.dwellSec
       } else if (this.pathIndex >= this.path.length) {
         this.walking = false
+        this.strip.walkTo(reached, 1)
+        this.strip.hide(0.6)
         if (this.camT) {
           const eye = this.camT.getWorldPosition()
           wt.setWorldRotation(yawQuat(Math.atan2(eye.x - target.x, eye.z - target.z)))
@@ -227,6 +288,7 @@ export class CaseRoomReplay extends BaseScriptComponent {
       }
       return
     }
+    this.strip.walkTo(this.pathIndex, 1 - dist / this.segmentLength)
     const dir = to.uniformScale(1 / dist)
     wt.setWorldPosition(pos.add(dir.uniformScale(step)))
     wt.setWorldRotation(yawQuat(Math.atan2(dir.x, dir.z)))
@@ -235,6 +297,10 @@ export class CaseRoomReplay extends BaseScriptComponent {
       this.sinceStep = 0
       this.dropFootprint(pos, dir)
     }
+  }
+
+  private flatDistance(a: vec3, b: vec3): number {
+    return new vec3(a.x - b.x, 0, a.z - b.z).length
   }
 
   private dropFootprint(pos: vec3, dir: vec3): void {
