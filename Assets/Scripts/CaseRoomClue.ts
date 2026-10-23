@@ -217,16 +217,24 @@ export class CaseRoomClue extends BaseScriptComponent {
 
   /**
    * A copy of how the clue looks, under `parent`: its meshes in their current colours and its glow shell,
-   * upright and facing +Z (as moveTo shows it), with no pinch target. The copy's root is unit scale; its
-   * child "Model" is scaled so the largest side is `sizeCm`. `glowScale` shrinks the glow shell (its fixed
-   * 3 cm margin is large on a small copy). Glow it with setGlow on the returned material.
+   * with no pinch target. The copy's root is unit scale; its child "Model" carries the look: scaled by
+   * `scale`, and turned as the clue rests in the room (`asPlaced`, e.g. the memo lying flat) or upright
+   * facing +Z (as moveTo shows it). `glowScale` shrinks the glow shell (its fixed 3 cm margin is large on a
+   * small copy). Glow it with setGlow on the returned material.
    */
-  makeCopy(parent: SceneObject, name: string, sizeCm: number, glowScale: number = 1): {root: SceneObject; glow: Material; color: vec3} {
+  makeCopy(
+    parent: SceneObject,
+    name: string,
+    opts: {scale: number; asPlaced?: boolean; glowScale?: number},
+  ): {root: SceneObject; glow: Material; color: vec3} {
     const root = global.scene.createSceneObject(name)
     root.setParent(parent)
     const model = global.scene.createSceneObject("Model")
     model.setParent(root)
-    model.getTransform().setLocalScale(vec3.one().uniformScale(sizeCm / Math.max(1, this.maxDimensionCm)))
+    const mt = model.getTransform()
+    mt.setLocalScale(vec3.one().uniformScale(opts.scale))
+    if (opts.asPlaced) mt.setLocalRotation(this.restPivotRot)
+    const glowScale = opts.glowScale ?? 1
     let glow: Material = null
     for (let i = 0; i < this.pivot.getChildrenCount(); i++) {
       const src = this.pivot.getChild(i)

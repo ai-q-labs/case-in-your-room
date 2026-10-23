@@ -16,7 +16,8 @@ import {ArrowDirectionsScenario} from "./ArrowDirectionsScenario"
 import {SwitchClueScenario} from "./SwitchClueScenario"
 import {InspectViewsScenario} from "./InspectViewsScenario"
 import {LineupFitScenario} from "./LineupFitScenario"
-import {ReplayStripScenario} from "./ReplayStripScenario"
+import {ReplayModelScenario} from "./ReplayModelScenario"
+import {LineupFacingScenario} from "./LineupFacingScenario"
 import {ReplayViewScenario} from "./ReplayViewScenario"
 
 @component
@@ -87,8 +88,12 @@ export class LeafIndex extends BaseScriptComponent {
       typename: LineupFitScenario.getTypeName(),
     },
     {
-      id: "replay_strip",
-      typename: ReplayStripScenario.getTypeName(),
+      id: "lineup_facing",
+      typename: LineupFacingScenario.getTypeName(),
+    },
+    {
+      id: "replay_model",
+      typename: ReplayModelScenario.getTypeName(),
     },
     {
       id: "inspect_hold",

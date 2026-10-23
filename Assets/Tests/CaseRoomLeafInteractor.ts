@@ -527,6 +527,23 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     return out
   }
 
+  /** The vertices of every mesh drawn under `root`, in world space (exact, where a box around a round shape is not). */
+  meshPoints(root: SceneObject): vec3[] {
+    const out: vec3[] = []
+    const visit = (o: SceneObject) => {
+      if (!o.isEnabledInHierarchy) return
+      const v = o.getComponent("Component.RenderMeshVisual") as RenderMeshVisual
+      if (v && v.mesh) {
+        const m = o.getTransform().getWorldTransform()
+        const xyz = v.mesh.extractVerticesForAttribute("position")
+        for (let k = 0; k + 2 < xyz.length; k += 3) out.push(m.multiplyPoint(new vec3(xyz[k], xyz[k + 1], xyz[k + 2])))
+      }
+      for (let i = 0; i < o.getChildrenCount(); i++) visit(o.getChild(i))
+    }
+    visit(root)
+    return out
+  }
+
   /** The open description and its buttons. */
   descriptionCorners(names: string[] = []): vec3[] {
     return this.drawnCorners("InspectInfo", names)

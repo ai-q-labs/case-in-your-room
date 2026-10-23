@@ -34,6 +34,11 @@
     gatherDistanceCm: false
     gatherHeightCm: false
     gatherSizeCm: false
+    stripCopySizeCm: false
+    stripDistanceCm: false
+    stripFigureHeightCm: false
+    stripLineHeightCm: false
+    stripSpacingCm: false
     threadColor: false
     walkSpeedCm: false
   ScriptTypesHidden:
@@ -53,6 +58,11 @@
       gatherDistanceCm: !<float> 110.000000
       gatherSizeCm: !<float> 11.000000
       gatherHeightCm: !<float> 14.000000
+      stripDistanceCm: !<float> 120.000000
+      stripLineHeightCm: !<float> -4.000000
+      stripCopySizeCm: 7.500000
+      stripSpacingCm: !<float> 10.000000
+      stripFigureHeightCm: !<float> 9.000000
   ScriptTypes:
     -
       {}
@@ -68,4 +78,12 @@
     - '// @input float gatherDistanceCm = 120 {"hint":"Distance in front of the player where the clues gather, in cm", "widget":"slider", "min":60, "max":200, "step":1}'
     - '// @input float gatherSizeCm = 11 {"hint":"Size of each gathered clue in cm (keep the row of 5 inside the view)", "widget":"slider", "min":5, "max":25, "step":0.5}'
     - '// @input float gatherHeightCm = 14 {"hint":"How far above eye level the clues float when they gather, in cm", "widget":"slider", "min":-30, "max":40, "step":1}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"Strip straight ahead during the walk"}'
+    - '// @input float stripDistanceCm = 120 {"hint":"Distance in front of the player of the row of small copies, in cm", "widget":"slider", "min":60, "max":200, "step":1}'
+    - '// @input float stripLineHeightCm = -4 {"hint":"Height of the line the small figure walks on, relative to eye level, in cm (the captions sit below it)", "widget":"slider", "min":-30, "max":30, "step":0.5}'
+    - '// @input float stripCopySizeCm = 7.5 {"hint":"Largest side of each small copy of a clue, in cm", "widget":"slider", "min":3, "max":15, "step":0.5}'
+    - '// @input float stripSpacingCm = 10 {"hint":"Centre-to-centre spacing of the small copies, in cm (keep the row inside the view)", "widget":"slider", "min":5, "max":20, "step":0.5}'
+    - '// @input float stripFigureHeightCm = 9 {"hint":"Height of the small walking figure, in cm", "widget":"slider", "min":4, "max":20, "step":0.5}'
     - '// @ui {"widget":"group_end"}'

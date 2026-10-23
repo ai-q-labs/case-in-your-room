@@ -8,7 +8,7 @@ import {SolidBox} from "./CaseRoomSightline"
  * (top at 75 cm), chair (seat at 45 cm) and a wall section for the clock. Each stand-in is an
  * authored SceneObject under CrimeScene; its position is the design decision, this script only
  * builds the geometry under it (hidden until the main script calls setVisible(true)).
- * Exposes: setVisible, worldBoxes (the solid boxes it is drawn from, for what may stand in front of it).
+ * Exposes: setVisible, worldBoxes (the solid boxes it is drawn from, for what may stand in front of it), mesh.
  * Must not: hold game state, create colliders.
  */
 @component
@@ -49,6 +49,7 @@ export class CaseRoomStandIn extends BaseScriptComponent {
   private visualRoot: SceneObject
   /** The boxes the stand-in is drawn from, in its own frame: centre and half sizes (cm). */
   private boxes: {c: vec3; h: vec3}[] = []
+  private builtMesh: RenderMesh = null
 
   onAwake(): void {
     if (this.faceRoomCenter) {
@@ -80,12 +81,18 @@ export class CaseRoomStandIn extends BaseScriptComponent {
     }
     const kit = new MeshKit()
     for (const b of this.boxes) kit.box(b.c.x, b.c.y, b.c.z, b.h.x, b.h.y, b.h.z)
-    addVisual(this.visualRoot, "Mesh", kit.build(), solidMaterial(this.color))
+    this.builtMesh = kit.build()
+    addVisual(this.visualRoot, "Mesh", this.builtMesh, solidMaterial(this.color))
     this.visualRoot.enabled = false
   }
 
   setVisible(visible: boolean): void {
     if (this.visualRoot) this.visualRoot.enabled = visible
+  }
+
+  /** The mesh it is drawn with (its own frame: the floor at y = 0), for a copy in the replay's room model. */
+  get mesh(): RenderMesh {
+    return this.builtMesh
   }
 
   /** The solid boxes the stand-in is drawn from, in world space (empty while it is hidden). */

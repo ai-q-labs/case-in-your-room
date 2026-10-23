@@ -7,7 +7,6 @@ function rgbDistance(a: vec4, b: vec4): number {
   return new vec3(a.x - b.x, a.y - b.y, a.z - b.z).length
 }
 
-const DEG = Math.PI / 180
 
 /**
  * Done criterion 2 (devpost/design-brief.md):
@@ -15,9 +14,10 @@ const DEG = Math.PI / 180
  * "Put back"). Pressing "Flip" shows the time on its back. Pressing "Put back" returns the memo to its
  * place in the "inspected" color, and the counter shows "1 / 5".
  * Changed during the build (devpost/design-brief.md, "Changes during the build"): the memo no longer comes
- * to the hands. It stays on the desk, and its description and 2 buttons ("Flip" and "Close") appear just
- * above it, facing the player. "Flip" turns it over where it lies and shows the time on its back; "Close"
- * leaves it in its place, turned face up again, in the "inspected" color, and the counter shows "1 / 5".
+ * to the hands. It stays on the desk, and its description and 2 buttons ("Flip" and "Close"), with the
+ * counter above them, open in the middle of the view, facing the player. "Flip" turns it over where it lies
+ * and shows the time on its back; "Close" leaves it in its place, turned face up again, in the "inspected"
+ * color, and the counter shows "1 / 5".
  */
 @component
 export class Criterion2MemoScenario extends Scenario {
@@ -47,7 +47,7 @@ export class Criterion2MemoScenario extends Scenario {
     })
     const foundBefore = ui.main.foundCount
 
-    // ── Pinch the memo: it stays on the desk; its description and 2 buttons appear just above it ──
+    // ── Pinch the memo: it stays on the desk; the counter, description and 2 buttons open in the middle of the view ──
     await ui.inspect(SO)
     await sleep(300)
     ui.near("memo stays in its place (cm)", memoT.getWorldPosition().distance(homePos), 0, 0.5)
@@ -59,22 +59,21 @@ export class Criterion2MemoScenario extends Scenario {
     expect(ui.text("CloseButtonLabel"), "Close label").toBe(CLOSE)
     expect(ui.isPinchable("FlipButton"), "Flip pinchable").toBe(true)
     expect(ui.isPinchable("CloseButton"), "Close pinchable").toBe(true)
-    // As the player sees it: angles above the line of sight to the memo, in the vertical plane through it.
-    const eye = ui.eye
-    const toMemo = homePos.sub(eye).normalize()
-    const upM = vec3.up().sub(toMemo.uniformScale(toMemo.y)).normalize()
-    const side = new vec3(-toMemo.z, 0, toMemo.x).normalize()
-    const elev = (p: vec3) => Math.atan2(p.sub(eye).dot(upM), p.sub(eye).dot(toMemo)) / DEG
-    const memoTop = Math.max(...memo.worldCorners().map(elev))
-    const info = ui.world("InspectInfo")
-    const flipBtn = ui.world("FlipButton")
-    const closeBtn = ui.world("CloseButton")
-    for (const [name, p] of [["description", info], ["Flip", flipBtn], ["Close", closeBtn]] as [string, vec3][]) {
-      expect(elev(p) > memoTop, `${name} above the memo as seen from the eye (${elev(p).toFixed(1)} vs memo top ${memoTop.toFixed(1)} deg)`).toBe(true)
+    // As the player sees it, in view coordinates (x right, y up; +-1 = the view's edges).
+    const b = ui.basis()
+    const xy = (name: string) => ui.viewXY(ui.world(name), b) ?? new vec2(99, 99)
+    const group = ui.viewRect(ui.descriptionCorners().concat(ui.drawnCorners("CounterPanel")), b)
+    const fill = ui.fill(ui.descriptionCorners().concat(ui.drawnCorners("CounterPanel")), b)
+    expect(!!group, "the group is in front of the eyes").toBe(true)
+    if (group) {
+      ui.near("group centred left-right in the view", (group.x0 + group.x1) / 2, 0, 0.03)
+      ui.near("group centred up-down in the view", (group.y0 + group.y1) / 2, 0, 0.03)
     }
-    expect(elev(info) > elev(closeBtn), "buttons under the description").toBe(true)
-    expect(flipBtn.sub(eye).dot(side) < closeBtn.sub(eye).dot(side), "Flip left of Close").toBe(true)
-    ui.log(`described ok: memo top ${memoTop.toFixed(1)} deg, description ${elev(info).toFixed(1)} deg, buttons ${elev(closeBtn).toFixed(1)} deg above the line to the memo`)
+    expect(fill <= 0.86, `the whole group within 85% of the view (${fill.toFixed(3)})`).toBe(true)
+    expect(xy("CounterPanel").y > xy("InspectInfo").y, "counter above the description").toBe(true)
+    expect(xy("InspectInfo").y > xy("CloseButton").y, "buttons under the description").toBe(true)
+    expect(xy("FlipButton").x < xy("CloseButton").x, "Flip left of Close").toBe(true)
+    ui.log(`described ok: group ${ui.rectText(group)}, fill ${fill.toFixed(3)}`)
 
     // ── Flip: turned over where it lies, the time on its back ──
     await ui.flip()

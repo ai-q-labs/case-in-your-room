@@ -5,7 +5,7 @@ import {CaseRoomClueTagUI} from "./CaseRoomClueTagUI"
 import {ClueId, CLUES, counterText, REPLAY_ORDER, REVEAL_ORDER, SUSPECTS, TEXT, TOTAL_CLUES, CULPRIT_INDEX} from "./CaseRoomData"
 import {CaseRoomHudUI} from "./CaseRoomHudUI"
 import {CaseRoomInspectPanelUI} from "./CaseRoomInspectPanelUI"
-import {DEG, faceTowardYaw, flatForward, yawQuat} from "./CaseRoomMeshes"
+import {faceTowardYaw, flatForward, yawQuat} from "./CaseRoomMeshes"
 import {CaseRoomOpeningBoardUI} from "./CaseRoomOpeningBoardUI"
 import {CaseRoomReplay, ReplayStop} from "./CaseRoomReplay"
 import {nearestDepth, SolidBox} from "./CaseRoomSightline"
@@ -26,8 +26,8 @@ type Phase = "intro" | "explore" | "inspect" | "suspects" | "accusing" | "replay
  * Expects: every @input below wired by the scene bootstrap.
  * Must not: create UI text or UIKit components (those live in the CaseRoom*UI modules), or build
  * geometry (CaseRoomClue / CaseRoomSuspect / CaseRoomStandIn / CaseRoomReplay do).
- * Size note: ~650 lines, of which ~180 are the Inspector @input block; kept whole so the flow reads end
- * to end. Candidate split: the placement helpers (describeInPlace, lineupDistance) and the replay hand-off.
+ * Size note: ~700 lines, of which ~180 are the Inspector @input block; kept whole so the flow reads end
+ * to end. Candidate split: the placement helpers (describeInPlace, placeLineup) and the replay hand-off.
  */
 @component
 export class CaseRoomMain extends BaseScriptComponent {
@@ -158,19 +158,14 @@ export class CaseRoomMain extends BaseScriptComponent {
   boardDistanceCm: number = 120
 
   @input
-  @hint("Viewing distance, in cm, whose look the description and buttons copy: shown just above a clue that is farther away, they are scaled up so they look as big as at this distance")
+  @hint("Distance, in cm, at which the counter, description and buttons open in the middle of the view (true size at this distance)")
   @widget(new SliderWidget(30, 100, 1))
   inspectDistanceCm: number = 50
 
   @input
-  @hint("Share of the view the description + buttons may fill, edge to edge, for a player looking at them")
+  @hint("Share of the view the counter + description + buttons may fill, edge to edge")
   @widget(new SliderWidget(0.5, 1, 0.01))
   inspectViewFill: number = 0.85
-
-  @input
-  @hint("Gap in degrees, as the player sees it, between the top of a clue and the bottom of its description")
-  @widget(new SliderWidget(0, 10, 0.5))
-  inPlaceGapDeg: number = 2
 
   @input
   @hint("Gap, in cm at the inspect look, between the top of an open description and the counter standing above it")
@@ -183,12 +178,12 @@ export class CaseRoomMain extends BaseScriptComponent {
   clearanceCm: number = 2
 
   @input
-  @hint("How far in front of the nearest thing in the way a description is drawn when it has to come nearer than its clue, in cm")
+  @hint("How far in front of the nearest thing in the way a description or the line-up is drawn when it has to come nearer, in cm")
   @widget(new SliderWidget(1, 20, 0.5))
   clearanceDepthCm: number = 5
 
   @input
-  @hint("Nearest a description may come to the eyes when something stands in front of its clue, in cm")
+  @hint("Nearest a description may come to the eyes when something stands in the way, in cm")
   @widget(new SliderWidget(25, 80, 1))
   inspectNearCm: number = 35
 
@@ -201,6 +196,11 @@ export class CaseRoomMain extends BaseScriptComponent {
   @hint("Share of the view the whole line-up (figures, names, alibi bubble, Accuse button) may fill, edge to edge, for a player looking level at it")
   @widget(new SliderWidget(0.5, 1, 0.01))
   lineupViewFill: number = 0.85
+
+  @input
+  @hint("Nearest the line-up may come when something stands in the way (it is then scaled down to look the same), in cm")
+  @widget(new SliderWidget(60, 200, 1))
+  lineupNearCm: number = 100
   @ui.group_end
 
   @ui.separator
@@ -224,6 +224,8 @@ export class CaseRoomMain extends BaseScriptComponent {
   private chimes: AudioComponent[] = []
   /** Gap between the figures' heads and the "suspects have appeared" message above them, in cm. */
   private readonly messageGapCm = 3
+  /** True while "The suspects have appeared" stands above the line-up. */
+  private messageUp = false
 
   /** Current phase, for tests and debugging. */
   get currentPhase(): string {
@@ -354,9 +356,9 @@ export class CaseRoomMain extends BaseScriptComponent {
   }
 
   /**
-   * A clue was pinched. It stays where it lies and its description opens just above it. If another
-   * clue's description is still open, that one closes first and counts exactly as if Close was pressed,
-   * so the player can go from clue to clue without closing each one.
+   * A clue was pinched. It stays where it lies and its description opens in the middle of where the player
+   * is looking. If another clue's description is still open, that one closes first and counts exactly as if
+   * Close was pressed, so the player can go from clue to clue without closing each one.
    */
   private onCluePressed(c: CaseRoomClue): void {
     if (this.phase === "inspect") {
@@ -371,19 +373,19 @@ export class CaseRoomMain extends BaseScriptComponent {
     c.setInteractive(false) // the other clues stay pinchable
     c.setGlowMode("off") // the halo is wider than the clue and would sit behind the description
     this.hud.setArrowTarget(null)
-    this.describeInPlace(c, this.camT.getWorldPosition())
+    this.describeInPlace(c, this.camT.getWorldPosition(), this.camT.back)
   }
 
   /**
-   * The clue stays where it is, and its name, description and buttons appear just above it as the player
-   * sees it (bottom edge inPlaceGapDeg above the clue's highest visible point, so they never cover it),
-   * facing the player, at the same apparent size as at inspectDistanceCm (shrunk if that would overfill
-   * the view of a player looking at them). The counter stands just above them, at its usual look.
-   * They are drawn at the clue's distance, or nearer when furniture or another clue stands in the way, and
-   * then scaled down by the same amount so they look exactly the same: nothing in the room hides them or
-   * the buttons, wherever the player stands.
+   * The clue stays where it lies. Its counter, name, description and buttons open as one group in the middle
+   * of where the player is looking (`look`), facing them, drawn at inspectDistanceCm at true size (shrunk only
+   * if the group would fill more than inspectViewFill of the view). It may cover the clue. If anything solid
+   * (furniture, a clue, the floor) stands nearer inside the pyramid from the eyes through the group, the
+   * group is drawn in front of it and scaled down by the same amount, so it looks exactly the same.
+   * It then stays where it opened while the head moves: the buttons stay still for the hand's ray, the
+   * clue and the room can be seen past it by looking aside, and the line of sight measured here stays true.
    */
-  private describeInPlace(c: CaseRoomClue, eye: vec3): void {
+  private describeInPlace(c: CaseRoomClue, eye: vec3, look: vec3): void {
     const withFlip = !c.info.noFlip
     const r = this.inspectPanel.groupRect(withFlip)
     const halfW = (r.max.x - r.min.x) / 2
@@ -391,54 +393,54 @@ export class CaseRoomMain extends BaseScriptComponent {
     // The counter, in the description's units: it keeps its own look (hud.viewDistanceCm away).
     const counterScale = this.inspectDistanceCm / this.hud.viewDistanceCm
     const counter = this.hud.plateSizeFor(counterText(this.found)).uniformScale(counterScale)
-    const top = halfH + this.counterGapCm + counter.y // top of the counter, above the description's centre
+    // Around the description's centre: the description and buttons from -halfH to +halfH, the counter above.
+    const top = halfH + this.counterGapCm + counter.y
+    const groupHalfH = (top + halfH) / 2
+    const lift = (top - halfH) / 2 // the group's centre above the description's centre
     const tanH = Math.tan(this.cam.fov / 2) * this.cam.aspect * this.inspectViewFill
     const tanV = Math.tan(this.cam.fov / 2) * this.inspectViewFill
-    const rest = c.restPosition
-    const dist = rest.sub(eye).length
-    const k0 = Math.min(dist / this.inspectDistanceCm, (dist * tanH) / halfW, (dist * tanV) / top)
-    // Angles measured from the line of sight to the clue, upward in the vertical plane that contains it.
-    const toClue = rest.sub(eye).normalize()
-    let up = vec3.up().sub(toClue.uniformScale(toClue.y))
-    up = up.length > 1e-3 ? up.normalize() : vec3.forward()
-    let clueTop = 0
-    for (const p of c.worldCorners()) {
-      const v = p.sub(eye)
-      clueTop = Math.max(clueTop, Math.atan2(v.dot(up), v.dot(toClue)))
-    }
-    const lift = clueTop + this.inPlaceGapDeg * DEG + Math.atan2(halfH * k0, dist)
-    const dir = toClue.uniformScale(Math.cos(lift)).add(up.uniformScale(Math.sin(lift)))
-    const rot = quat.lookAt(dir.uniformScale(-1), vec3.up())
+    const far = this.inspectDistanceCm
+    const k0 = Math.min(1, (far * tanH) / halfW, (far * tanV) / groupHalfH)
+    const dir = look.normalize()
+    const rot = quat.lookAt(dir.uniformScale(-1), Math.abs(dir.y) > 0.98 ? this.camT.up : vec3.up())
     const right = rot.multiplyVec3(vec3.right())
     const upP = rot.multiplyVec3(vec3.up())
-    // The pyramid from the eye through the description, the buttons and the counter (plus a margin): the
-    // nearest solid thing inside it decides how near they are drawn.
+    // The pyramid from the eye through the whole group (plus a margin): the nearest solid thing inside it
+    // decides how near the group is drawn.
     const m = this.clearanceCm
-    const at = (x: number, y: number) => eye.add(dir.uniformScale(dist)).add(right.uniformScale(x * k0)).add(upP.uniformScale(y * k0))
-    const corners = [at(-halfW - m, -halfH - m), at(halfW + m, -halfH - m), at(halfW + m, top + m), at(-halfW - m, top + m)]
-    const nearest = nearestDepth(eye, dir, corners, this.solidsBesides(c))
-    const depth = Math.max(this.inspectNearCm, Math.min(dist, nearest - this.clearanceDepthCm))
-    const k = (k0 * depth) / dist
-    const center = eye.add(dir.uniformScale(depth))
+    const at = (x: number, y: number) => eye.add(dir.uniformScale(far)).add(right.uniformScale(x * k0)).add(upP.uniformScale(y * k0))
+    const corners = [
+      at(-halfW - m, -groupHalfH - m),
+      at(halfW + m, -groupHalfH - m),
+      at(halfW + m, groupHalfH + m),
+      at(-halfW - m, groupHalfH + m),
+    ]
+    const nearest = nearestDepth(eye, dir, corners, this.solids())
+    const depth = Math.max(this.inspectNearCm, Math.min(far, nearest - this.clearanceDepthCm))
+    const k = (k0 * depth) / far
+    const groupCenter = eye.add(dir.uniformScale(depth))
+    const descCenter = groupCenter.sub(upP.uniformScale(lift * k))
     const cx = ((r.min.x + r.max.x) / 2) * k
     const cy = ((r.min.y + r.max.y) / 2) * k
-    const pos = center.sub(right.uniformScale(cx)).sub(upP.uniformScale(cy))
+    const pos = descCenter.sub(right.uniformScale(cx)).sub(upP.uniformScale(cy))
     const t = this.inspectPanel.getSceneObject().getTransform()
     t.setWorldPosition(pos)
     t.setWorldRotation(rot)
     t.setWorldScale(vec3.one().uniformScale(k))
     this.inspectPanel.layout(withFlip)
     this.inspectPanel.show(c.info.name, c.info.description, withFlip)
-    this.hud.pinAbove(center.add(upP.uniformScale((halfH + this.counterGapCm) * k)), rot, k * counterScale)
-    const why = depth < dist - 0.01 ? `, drawn ${depth.toFixed(1)} cm away (something in the way at ${nearest.toFixed(1)})` : ""
-    this.log(`describe ${c.info.id} in place: ${dist.toFixed(1)} cm away${why}, scale ${k.toFixed(2)}, ${(lift / DEG).toFixed(1)} deg above it`)
+    this.hud.pinAbove(descCenter.add(upP.uniformScale((halfH + this.counterGapCm) * k)), rot, k * counterScale)
+    const why = depth < far - 0.01 ? ` (brought in from ${far} cm: something in the way at ${nearest.toFixed(1)})` : ""
+    this.log(`describe ${c.info.id} in the middle of the view: ${depth.toFixed(1)} cm away${why}, scale ${k.toFixed(2)}`)
   }
 
-  /** Everything solid that could stand between the player and a description: the stand-in furniture and the other clues. */
-  private solidsBesides(c: CaseRoomClue): SolidBox[] {
+  /** Everything solid in the room: the stand-in furniture, the clues and the floor. */
+  private solids(): SolidBox[] {
     let out: SolidBox[] = []
     for (const s of [this.standInDesk, this.standInChair, this.standInWall]) out = out.concat(s.worldBoxes())
-    for (const k of this.clues) if (k !== c) out = out.concat(k.worldBoxes())
+    for (const k of this.clues) out = out.concat(k.worldBoxes())
+    const floor = this.crimeScene.getTransform().getWorldPosition()
+    out.push({center: floor.sub(new vec3(0, 5, 0)), axes: [vec3.right(), vec3.up(), vec3.forward()], half: new vec3(2000, 5, 2000)})
     return out
   }
 
@@ -499,20 +501,17 @@ export class CaseRoomMain extends BaseScriptComponent {
     this.phase = "suspects"
     for (const k of this.clues) k.setInteractive(false)
     this.hud.setArrowTarget(null)
+    // The suspects appear straight ahead of where the player faces at this moment (the 5th clue counted).
+    const eye = this.camT.getWorldPosition()
+    const fwd = flatForward(this.camT)
     this.delay(1.0, () => {
-      const eye = this.camT.getWorldPosition()
-      const d = this.lineupDistance()
-      const pos = eye.add(flatForward(this.camT).uniformScale(d))
-      const t = this.suspectLineup.getTransform()
-      t.setWorldPosition(pos)
-      t.setWorldRotation(faceTowardYaw(pos, eye))
       for (const s of this.suspects) s.appear(0.8)
       this.suspectsUI.setVisible(true)
       // "The suspects have appeared" stands above the figures (where an alibi bubble goes later) instead of
       // under the line of sight, where it covered the names at their feet.
       this.hud.setText(TEXT.suspectsAppeared)
-      const at = t.getWorldTransform().multiplyPoint(new vec3(0, this.figureTopCm() + this.messageGapCm, 4))
-      this.hud.pinAbove(at, t.getWorldRotation(), d / this.hud.viewDistanceCm)
+      this.messageUp = true
+      const d = this.placeLineup(eye, fwd)
       this.hud.pulse()
       this.log(`suspects appeared ${d.toFixed(1)} cm away`)
       this.delay(2.5, () => this.hideSuspectsMessage())
@@ -520,8 +519,59 @@ export class CaseRoomMain extends BaseScriptComponent {
   }
 
   private hideSuspectsMessage(): void {
+    this.messageUp = false
     this.hud.setVisible(false)
     this.hud.unpin()
+  }
+
+  /**
+   * Stand the line-up straight ahead of `eye` along the flat direction `fwd`, at lineupDistance(). If anything
+   * solid (furniture, a clue, the floor) stands nearer inside the pyramid from the eyes through the whole
+   * line-up, it is brought in front of that and scaled down by the same amount, so it still fills the same
+   * share of the view (never nearer than lineupNearCm). Returns the distance it stands at.
+   */
+  private placeLineup(eye: vec3, fwd: vec3): number {
+    const d = this.lineupDistance()
+    const boxes = this.lineupBoxes(d)
+    let x0 = 0
+    let x1 = 0
+    let y0 = 0
+    let y1 = 0
+    let front = 0
+    let back = 0
+    for (const b of boxes) {
+      x0 = Math.min(x0, b.min.x)
+      x1 = Math.max(x1, b.max.x)
+      y0 = Math.min(y0, b.min.y)
+      y1 = Math.max(y1, b.max.y)
+      front = Math.max(front, b.max.z)
+      back = Math.max(back, -b.min.z)
+    }
+    for (const s of this.suspects) {
+      // The busts' fronts and backs.
+      front = Math.max(front, s.localBoundsCm().max.z)
+      back = Math.max(back, -s.localBoundsCm().min.z)
+    }
+    const right = new vec3(-fwd.z, 0, fwd.x)
+    const m = this.clearanceCm
+    const at = (x: number, y: number) => eye.add(fwd.uniformScale(d - front)).add(right.uniformScale(x)).add(vec3.up().uniformScale(y))
+    const corners = [at(x0 - m, y0 - m), at(x1 + m, y0 - m), at(x1 + m, y1 + m), at(x0 - m, y1 + m)]
+    const nearest = nearestDepth(eye, fwd, corners, this.solids())
+    // Scaled by k = D / d, its back stands at k * (d + back): keep all of it clearanceDepthCm short of `nearest`.
+    const fit = ((nearest - this.clearanceDepthCm) * d) / (d + back)
+    const dist = Math.max(this.lineupNearCm, Math.min(d, fit))
+    const k = dist / d
+    const pos = eye.add(fwd.uniformScale(dist))
+    const t = this.suspectLineup.getTransform()
+    t.setWorldPosition(pos)
+    t.setWorldRotation(faceTowardYaw(pos, eye))
+    t.setWorldScale(vec3.one().uniformScale(k))
+    if (this.messageUp) {
+      const msgAt = t.getWorldTransform().multiplyPoint(new vec3(0, this.figureTopCm() + this.messageGapCm, 4))
+      this.hud.pinAbove(msgAt, t.getWorldRotation(), dist / this.hud.viewDistanceCm)
+    }
+    if (dist < d - 0.01) this.log(`line-up brought in from ${d.toFixed(1)} to ${dist.toFixed(1)} cm (something in the way at ${nearest.toFixed(1)})`)
+    return dist
   }
 
   private figureTopCm(): number {
@@ -539,21 +589,11 @@ export class CaseRoomMain extends BaseScriptComponent {
   private lineupDistance(): number {
     const tanV = Math.tan(this.cam.fov / 2) * this.lineupViewFill
     const tanH = tanV * this.cam.aspect
-    const boxes: {min: vec3; max: vec3}[] = [this.suspectsUI.localExtentCm()]
-    for (const s of this.suspects) {
-      // A bust is round: it is widest across at its centre's depth, not at its front.
-      const b = s.localBoundsCm()
-      const at = s.getSceneObject().getTransform().getLocalPosition()
-      boxes.push({min: new vec3(b.min.x, b.min.y, 0).add(at), max: new vec3(b.max.x, b.max.y, 0).add(at)})
-    }
-    const y0 = this.figureTopCm() + this.messageGapCm
     let d = this.lineupDistanceCm
     // The message keeps its look (it is scaled with the distance), so a few passes settle it.
     for (let pass = 0; pass < 4; pass++) {
-      const msg = this.hud.plateSizeFor(TEXT.suspectsAppeared).uniformScale(d / this.hud.viewDistanceCm)
-      const all = boxes.concat([{min: new vec3(-msg.x / 2, y0, 4), max: new vec3(msg.x / 2, y0 + msg.y, 4)}])
       let need = this.lineupDistanceCm
-      for (const b of all) {
+      for (const b of this.lineupBoxes(d)) {
         for (const x of [b.min.x, b.max.x]) {
           for (const y of [b.min.y, b.max.y]) {
             // A point b.max.z toward the player is that much nearer the eyes.
@@ -564,6 +604,25 @@ export class CaseRoomMain extends BaseScriptComponent {
       d = need
     }
     return d
+  }
+
+  /**
+   * Boxes (cm, in the line-up's own frame at scale 1: x right, y up, z toward the player) covering the
+   * figures, the name labels, every place the alibi bubble and the Accuse button can take, and the
+   * "suspects have appeared" message sized for a line-up `d` away.
+   */
+  private lineupBoxes(d: number): {min: vec3; max: vec3}[] {
+    const boxes: {min: vec3; max: vec3}[] = [this.suspectsUI.localExtentCm()]
+    for (const s of this.suspects) {
+      // A bust is round: it is widest across at its centre's depth, not at its front.
+      const b = s.localBoundsCm()
+      const at = s.getSceneObject().getTransform().getLocalPosition()
+      boxes.push({min: new vec3(b.min.x, b.min.y, 0).add(at), max: new vec3(b.max.x, b.max.y, 0).add(at)})
+    }
+    const y0 = this.figureTopCm() + this.messageGapCm
+    const msg = this.hud.plateSizeFor(TEXT.suspectsAppeared).uniformScale(d / this.hud.viewDistanceCm)
+    boxes.push({min: new vec3(-msg.x / 2, y0, 4), max: new vec3(msg.x / 2, y0 + msg.y, 4)})
+    return boxes
   }
 
   private onSuspectPressed(index: number): void {
@@ -617,10 +676,25 @@ export class CaseRoomMain extends BaseScriptComponent {
       this.suspectsUI.setVisible(false)
       const stops: ReplayStop[] = REPLAY_ORDER.map((id: ClueId) => ({clue: this.clueById(id), caption: CLUES[id].replayCaption}))
       const center = this.crimeScene.getTransform().getWorldPosition()
-      this.replay.walk(stops, new vec3(start.x, floorY, start.z), center, {
-        onCaption: (text) => this.caption.showCaption(text, 0),
-        onFinished: (top) => this.showTruth(top),
-      })
+      const eye = this.camT.getWorldPosition()
+      const walkStart = new vec3(start.x, floorY, start.z)
+      this.replay.walk(
+        stops,
+        walkStart,
+        center,
+        {
+          onCaption: (text) => this.caption.showCaption(text, 0),
+          onFinished: (top) => this.showTruth(top),
+        },
+        {
+          frame: this.crimeScene,
+          standIns: [this.standInDesk, this.standInChair, this.standInWall],
+          clues: stops.map((s) => s.clue),
+          playerFloor: new vec3(eye.x, floorY, eye.z),
+          playerFacing: flatForward(this.camT),
+          walkStart,
+        },
+      )
       this.log("replay walking")
     })
   }

@@ -53,10 +53,11 @@ async function tracePress(ui: CaseRoomLeafInteractor, target: Interactable, labe
 }
 
 /**
- * Reachability check for the description buttons: with the memo's description open just above it on the
- * desk (~1.2 m away), an IK body (head aim, shoulder -> elbow -> wrist -> fingers) presses "Flip" and then
- * "Close" the way a real user would. At that distance the press goes by the hand's ray (far field); the
- * route is logged. Setup (Start, pinching the memo) uses the scripted interactor.
+ * Reachability check for the description buttons: with the memo's description open in the middle of the
+ * view, 50 cm in front, an IK body (head aim, shoulder -> elbow -> wrist -> fingers) presses "Flip" and then
+ * "Close" by the hand's ray, the way SIK presses a target the hand is not touching. LEAF would pick a direct
+ * poke at 50 cm; whether that is within its arm's comfortable reach is logged as evidence (the ray is the
+ * route this test holds the Lens to). Setup (Start, pinching the memo) uses the scripted interactor.
  *
  * No fallback: the IK interactor is created without the scripted SIK fallback, and the LeafIndex entry
  * sets __leaf__diagnostic_policy = fail-fast, so an unreachable / out-of-view / non-converging press
@@ -67,6 +68,10 @@ export class IkInspectReachScenario extends Scenario {
   async run(): Promise<void> {
     const ui = new CaseRoomLeafInteractor("IkReach")
     const ik = createIKInteractor({body: {fallback: undefined}})
+    // Press by the hand's ray (see above); remember what LEAF would have chosen.
+    const right = ik.right as any
+    const wouldPoke = (t: Interactable) => !right.__proto__.isIndirect.call(right, t)
+    right.isIndirect = () => true
     await sleep(1500)
     const settled = await Promise.race([ik.ready.then(() => true), sleep(15000).then(() => false)])
     ui.log(`IK avatar load ${settled ? "settled" : "still pending after 15 s (continuing with bare IK hands)"}`)
@@ -83,7 +88,7 @@ export class IkInspectReachScenario extends Scenario {
     const flipPos = flip.getSceneObject().getTransform().getWorldPosition()
     ui.log(
       `FlipButton ${flipPos.sub(ui.eye).length.toFixed(1)} cm from the eye, ${(ui.eye.y - flipPos.y).toFixed(1)} cm below the eyes; ` +
-        `IK route: ${ik.right.isIndirect(flip) ? "far-field ray (indirect)" : "direct reach"}`,
+        `IK route: far-field ray (indirect); LEAF would have poked it directly: ${wouldPoke(flip)}`,
     )
     await tracePress(ui, flip, "IK Flip", ik.trigger(flip, "right"))
     logDiagnostics(ui, "after the IK Flip press")
