@@ -2,11 +2,11 @@
 
 This repository holds the Lens Studio project for *Case in Your Room*. The scripts, tests, scene, story text and `devpost/` were written for this project by Ai-Q Labs. The files below come from other parties and keep their own licenses.
 
-## 1. Google Material Icons (Apache License 2.0)
+## 1. Google Material Symbols (Apache License 2.0)
 
-- Files: `Assets/Icons/arrow_forward.png`, `Assets/Icons/arrow_upward.png`, `Assets/Icons/360.png`, `Assets/Icons/navigation.png`, `Assets/Icons/pinch.png` (imported with Lens Studio's icon selector)
+- Files: `Assets/Icons/arrow_forward.png`, `Assets/Icons/arrow_upward.png` and `Assets/Icons/360.png` (imported with the IconSelector tool of the Lens Studio MCP); `Assets/Icons/navigation.png` and `Assets/Icons/pinch.png` (the Material Symbols of the same names, in the same 512 x 512 format)
 - Modified file: `Assets/Icons/360_mirrored.png` is `360.png` flipped horizontally for this project.
-- Source: https://github.com/google/material-design-icons
+- Source: https://github.com/google/material-design-icons (Material Symbols are in this repository)
 - License: Apache License 2.0. The full text is in section 6 below.
 
 ## 2. AI Preview Agent packages by Specs Inc. (MIT License)
