@@ -88,8 +88,9 @@ export class Criterion4WrongAccuseScenario extends Scenario {
     expect(bubble.y > local[idx].y, `speech bubble above ${s.name}`).toBe(true)
     ui.near(`Accuse button under ${s.name} (x, cm)`, button.x - local[idx].x, 0, 0.5)
     expect(button.y < local[idx].y - 35, `Accuse button at ${s.name}'s feet`).toBe(true)
-    expect(ui.inView(ui.world("AlibiBubble")), "speech bubble in view").toBe(true)
-    expect(ui.inView(ui.world("AccusePanel")), "Accuse button in view").toBe(true)
+    const seen = await ui.whileLevel(() => [ui.inView(ui.world("AlibiBubble")), ui.inView(ui.world("AccusePanel"))])
+    expect(seen[0], "speech bubble in view").toBe(true)
+    expect(seen[1], "Accuse button in view").toBe(true)
   }
 
   /** Press Accuse on a wrong suspect: the thread stops short, fades, and the wrong caption shows. */

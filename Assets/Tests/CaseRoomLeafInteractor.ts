@@ -301,6 +301,19 @@ export class CaseRoomLeafInteractor extends DefaultLeafInteractor {
     return s.x >= 0 && s.x <= 1 && s.y >= 0 && s.y <= 1
   }
 
+  /**
+   * Measure what a player looking straight ahead, level, would see. The preview opens with its camera
+   * pitched 12 deg down, so what inView() says on its own depends on how the panel happens to be posed.
+   */
+  async whileLevel<T>(measure: () => T): Promise<T> {
+    this.holdHead(this.lookRot(this.flatLook))
+    await nextFrame()
+    await nextFrame()
+    const result = measure()
+    this.releaseHead()
+    return result
+  }
+
   /** Horizontal angle in degrees between the flat viewing direction and the direction to `p`. */
   bearingDeg(p: vec3): number {
     const e = this.eye

@@ -43,12 +43,13 @@ export class Criterion5RightAccuseScenario extends Scenario {
     await sleep(1450)
     const eye = ui.eye
     const gathered = CLUES.map((c) => ui.world(c.so))
+    const seen = await ui.whileLevel(() => gathered.map((p) => ui.inView(p)))
     let cx = 0
     let cy = 0
     let cz = 0
     gathered.forEach((p, i) => {
       const so = CLUES[i].so
-      expect(ui.inView(p), `${so} gathered in view`).toBe(true)
+      expect(seen[i], `${so} gathered in view`).toBe(true)
       ui.between(`${so} gathered height above the eyes (cm)`, p.y - eye.y, 5, 30)
       ui.between(`${so} gathered horizontal distance (cm)`, ui.horizontalDistance(p, eye), 100, 130)
       if (rest[i].y < eyeY) expect(p.y - rest[i].y > 10, `${so} floated up from ${rest[i].y.toFixed(0)} to ${p.y.toFixed(0)}`).toBe(true)
@@ -148,7 +149,7 @@ export class Criterion5RightAccuseScenario extends Scenario {
     ui.near("truth in the figure's direction (bearing difference, deg)", ui.signedBearingDeg(truth) - ui.signedBearingDeg(fig), 0, 2)
     ui.near("truth about 1.5 m in front (horizontal cm)", ui.horizontalDistance(truth, ui.eye), 150, 3)
     ui.between("truth a little above eye height (cm)", truth.y - ui.eye.y, 0, 40)
-    expect(ui.inView(truth), "truth panel centre in view").toBe(true)
+    expect(await ui.whileLevel(() => ui.inView(truth)), "truth panel centre in view").toBe(true)
     expect(ui.screen(truth).y < ui.screen(figTop).y, "truth appears above the figure (screen)").toBe(true)
     ui.log(`truth ok: ${prints.length} footprints, truth screen y ${ui.screen(truth).y.toFixed(3)} vs figure top ${ui.screen(figTop).y.toFixed(3)}`)
   }

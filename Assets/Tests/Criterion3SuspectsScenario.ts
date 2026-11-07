@@ -75,8 +75,9 @@ export class Criterion3SuspectsScenario extends Scenario {
     ui.near("in a row: same depth (Edgar vs Iris)", local[0].z - local[2].z, 0, 0.5)
     const bearings = SUSPECTS.map((s) => ui.signedBearingDeg(ui.world(s.so)))
     expect(bearings[0] < bearings[1] && bearings[1] < bearings[2], `left-to-right order Edgar, Nora, Iris (bearings ${bearings.map((b) => b.toFixed(1)).join(", ")})`).toBe(true)
-    SUSPECTS.forEach((s) => {
-      expect(ui.inView(ui.world(s.so)), `${s.name} in view`).toBe(true)
+    const seen = await ui.whileLevel(() => SUSPECTS.map((s) => ui.inView(ui.world(s.so))))
+    SUSPECTS.forEach((s, i) => {
+      expect(seen[i], `${s.name} in view`).toBe(true)
       const fig = ui.child(ui.so(s.so), "Figure")
       expect(!!fig && fig.isEnabledInHierarchy, `${s.name} figure visible`).toBe(true)
       expect(ui.isPinchable(s.so), `${s.name} pinchable`).toBe(true)
